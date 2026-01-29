@@ -1,0 +1,13 @@
+export { DashboardPage } from './DashboardPage';
+export { PatientsPage } from './PatientsPage';
+export { PatientDetailPage } from './PatientDetailPage';
+export { SamplesPage } from './SamplesPage';
+export { NewOrderPage } from './NewOrderPage';
+export { ResultsPage } from './ResultsPage';
+export { WorklistPage } from './WorklistPage';
+export { TestCatalogPage } from './TestCatalogPage';
+export { InstrumentsPage } from './InstrumentsPage';
+export { UnmatchedDataPage } from './UnmatchedDataPage';
+export { ReportsPage } from './ReportsPage';
+export { SettingsPage } from './SettingsPage';
+export { LoginPage } from './LoginPage';

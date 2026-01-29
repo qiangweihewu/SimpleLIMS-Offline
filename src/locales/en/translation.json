@@ -1,0 +1,279 @@
+{
+  "app": {
+    "name": "SimpleLIMS Offline",
+    "description": "Laboratory Information Management System"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "patients": "Patients",
+    "samples": "Samples",
+    "orders": "New Order",
+    "worklist": "Worklist",
+    "results": "Results",
+    "reports": "Reports",
+    "unmatched": "Unmatched Data",
+    "instruments": "Instruments",
+    "catalog": "Test Catalog",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "status": "Status",
+    "actions": "Actions",
+    "success": "Success",
+    "error": "Error",
+    "confirm": "Confirm"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "overview": "Laboratory Overview",
+    "today_samples": "Today's Samples",
+    "pending": "Pending",
+    "completed": "Completed",
+    "abnormal": "Abnormal Results",
+    "recent_samples": "Recent Samples",
+    "quick_actions": "Quick Actions",
+    "register_patient": "Register Patient",
+    "receive_sample": "Receive Sample",
+    "print_barcode": "Print Barcode",
+    "no_recent_samples": "No recent samples",
+    "total_samples": "Total Samples",
+    "avg_tat": "Avg TAT",
+    "stats_wip": "Statistics feature in progress",
+    "instrument_status": "Instrument Status",
+    "no_instruments": "No instruments connected",
+    "configure_instruments": "Configure in Instruments page",
+    "hours": "hours"
+  },
+  "patients": {
+    "title": "Patient Management",
+    "subtitle": "Manage patient information and history",
+    "add_patient": "Add Patient",
+    "total_patients": "Total {{count}} patients",
+    "no_data": "No patients found, please add one",
+    "form": {
+      "title": "New Patient",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "gender": "Gender",
+      "dob": "Date of Birth",
+      "phone": "Phone",
+      "address": "Address"
+    },
+    "table": {
+      "id": "Patient ID",
+      "name": "Name",
+      "gender": "Gender",
+      "age": "Age",
+      "phone": "Phone",
+      "registered_at": "Registered Date"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "actions": {
+      "order": "Order"
+    }
+  },
+  "samples": {
+    "title": "Sample Management",
+    "subtitle": "View and manage all laboratory samples",
+    "new_sample": "New Sample",
+    "total_samples": "Total {{count}} samples",
+    "no_data": "No sample data",
+    "search_placeholder": "Search Sample ID, Patient Name...",
+    "status_filter": {
+      "all": "All Status",
+      "registered": "Registered",
+      "in_progress": "In Progress",
+      "completed": "Completed"
+    },
+    "table": {
+      "sample_id": "Sample ID",
+      "patient": "Patient",
+      "tests": "Tests",
+      "priority": "Priority",
+      "status": "Status",
+      "collected_at": "Collected At"
+    },
+    "priority": {
+      "normal": "Normal",
+      "urgent": "Urgent",
+      "stat": "STAT"
+    }
+  },
+  "worklist": {
+    "title": "Worklist",
+    "subtitle": "Pending sample queue management",
+    "total_pending": "Total Pending",
+    "urgent_samples": "Urgent Samples",
+    "avg_wait": "Avg Wait",
+    "minutes": "mins",
+    "start": "Start"
+  },
+  "orders": {
+    "title": "New Order",
+    "subtitle": "Create new sample and orders",
+    "steps": {
+      "patient": "1. Select Patient",
+      "tests": "2. Select Tests",
+      "confirm": "3. Confirm Order"
+    },
+    "search_patient": "Search patient...",
+    "no_patient_found": "No patient found",
+    "add_patient": "Add Patient",
+    "priority": "Priority",
+    "summary": {
+      "title": "Order Summary",
+      "patient": "Patient",
+      "tests": "Tests",
+      "count": "{{count}} items"
+    },
+    "create_sample": "Create Sample",
+    "messages": {
+      "select_patient": "Please select a patient",
+      "select_tests": "Please select tests",
+      "success": "Sample {{id}} created successfully",
+      "error": "Creation failed, please retry"
+    }
+  },
+  "results": {
+    "title": "Result Entry",
+    "subtitle": "Review and edit test results",
+    "batch_verify": "Batch Verify",
+    "stats": {
+      "pending": "Pending",
+      "critical": "Critical",
+      "verified": "Verified"
+    },
+    "search_placeholder": "Search Sample ID or Patient Name...",
+    "table": {
+      "sample_id": "Sample ID",
+      "patient": "Patient",
+      "test": "Test",
+      "result": "Result",
+      "unit": "Unit",
+      "ref_range": "Ref Range",
+      "flag": "Flag",
+      "status": "Status"
+    },
+    "flags": {
+      "N": "Normal",
+      "H": "High",
+      "L": "Low",
+      "HH": "Critical High",
+      "LL": "Critical Low"
+    },
+    "status": {
+      "verified": "Verified",
+      "pending": "Pending"
+    },
+    "messages": {
+      "verified_success": "Result verified",
+      "verify_failed": "Verification failed"
+    },
+    "no_data": "No result data"
+  },
+  "instruments": {
+    "title": "Instrument Management",
+    "subtitle": "Configure and monitor lab instruments",
+    "add_instrument": "Add Instrument",
+    "stats": {
+      "online": "Online",
+      "offline": "Offline",
+      "total": "Total Instruments"
+    },
+    "no_instruments": "No instruments configured",
+    "status": {
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "fields": {
+      "connection_type": "Connection Type",
+      "protocol": "Protocol",
+      "port": "Port",
+      "baud_rate": "Baud Rate",
+      "last_activity": "Last Activity"
+    },
+    "connection_types": {
+      "serial": "RS-232 Serial",
+      "tcp": "TCP/IP Network",
+      "file": "File Watch"
+    },
+    "protocols": {
+      "astm": "ASTM E1394",
+      "hl7": "HL7 v2.x",
+      "csv": "CSV File"
+    },
+    "actions": {
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "test": "Test",
+      "configure": "Configure"
+    }
+  },
+  "unmatched": {
+    "title": "Unmatched Data",
+    "subtitle": "Process unmapped instrument results",
+    "alert_title": "{{count}} unmapped results waiting",
+    "alert_desc": "These results could not be automatically matched. Please claim or discard.",
+    "pending_list": "Pending List",
+    "instrument_id": "Instrument ID",
+    "raw_id": "Raw ID",
+    "received_at": "Received At",
+    "tests_count": "{{count}} tests",
+    "claim": "Claim",
+    "discard": "Discard",
+    "view": "View",
+    "no_data": "No unmatched data pending",
+    "dialog": {
+      "title": "Claim Data",
+      "label": "Target Sample ID",
+      "placeholder": "Scan or enter Sample ID",
+      "confirm": "Confirm Link"
+    },
+    "messages": {
+      "confirm_discard": "Are you sure you want to discard this data? This cannot be undone.",
+      "sample_not_found": "Sample ID not found",
+      "claim_success": "Data linked successfully",
+      "claim_failed": "Failed to link data",
+      "discard_success": "Data discarded",
+      "discard_failed": "Failed to discard"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "username": "Username",
+    "password": "Password",
+    "subtitle": "Clinical Laboratory Information Management System",
+    "placeholder": {
+      "username": "Enter username",
+      "password": "Enter password"
+    },
+    "footer": {
+      "version": "SimpleLIMS v0.1.0",
+      "slogan": "Offline First · Secure Data"
+    }
+  },
+  "sidebar": {
+    "instrument_connected": "Instrument: Connected",
+    "offline_mode": "Offline Mode"
+  },
+  "settings": {
+    "title": "System Settings",
+    "general": "General",
+    "language": "Language",
+    "select_language": "Select Language",
+    "lab_info": "Laboratory Information",
+    "backup": "Backup & Restore"
+  }
+}

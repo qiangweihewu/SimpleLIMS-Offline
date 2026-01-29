@@ -1,0 +1,279 @@
+{
+  "app": {
+    "name": "SimpleLIMS 离线版",
+    "description": "实验室信息管理系统"
+  },
+  "nav": {
+    "dashboard": "工作台",
+    "patients": "患者管理",
+    "samples": "样本管理",
+    "orders": "新建医嘱",
+    "worklist": "工作列表",
+    "results": "结果审核",
+    "reports": "报告中心",
+    "unmatched": "未匹配数据",
+    "instruments": "仪器管理",
+    "catalog": "检验项目",
+    "settings": "系统设置",
+    "logout": "退出登录"
+  },
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "新建",
+    "search": "搜索",
+    "status": "状态",
+    "actions": "操作",
+    "success": "成功",
+    "error": "错误",
+    "confirm": "确认"
+  },
+  "dashboard": {
+    "welcome": "欢迎回来",
+    "overview": "实验室概览",
+    "today_samples": "今日样本",
+    "pending": "待处理",
+    "completed": "已完成",
+    "abnormal": "异常结果",
+    "recent_samples": "最近样本",
+    "quick_actions": "快捷操作",
+    "register_patient": "登记患者",
+    "receive_sample": "接收样本",
+    "print_barcode": "打印条码",
+    "no_recent_samples": "暂无最近样本",
+    "total_samples": "总样本数",
+    "avg_tat": "平均 TAT",
+    "stats_wip": "统计功能开发中",
+    "instrument_status": "仪器状态",
+    "no_instruments": "暂无仪器连接",
+    "configure_instruments": "请在仪器管理中配置",
+    "hours": "小时"
+  },
+  "patients": {
+    "title": "患者管理",
+    "subtitle": "管理患者信息和历史记录",
+    "add_patient": "新增患者",
+    "total_patients": "共 {{count}} 位患者",
+    "no_data": "暂无患者数据，请先添加患者",
+    "form": {
+      "title": "新增患者",
+      "first_name": "名字",
+      "last_name": "姓氏",
+      "gender": "性别",
+      "dob": "出生日期",
+      "phone": "联系电话",
+      "address": "地址"
+    },
+    "table": {
+      "id": "患者 ID",
+      "name": "姓名",
+      "gender": "性别",
+      "age": "年龄",
+      "phone": "电话",
+      "registered_at": "登记日期"
+    },
+    "gender": {
+      "male": "男",
+      "female": "女",
+      "other": "其他"
+    },
+    "actions": {
+      "order": "开单"
+    }
+  },
+  "samples": {
+    "title": "样本管理",
+    "subtitle": "查看和管理所有检验样本",
+    "new_sample": "新建样本",
+    "total_samples": "共 {{count}} 个样本",
+    "no_data": "暂无样本数据",
+    "search_placeholder": "搜索样本 ID、患者姓名...",
+    "status_filter": {
+      "all": "全部状态",
+      "registered": "已登记",
+      "in_progress": "检测中",
+      "completed": "已完成"
+    },
+    "table": {
+      "sample_id": "样本 ID",
+      "patient": "患者",
+      "tests": "检验项目",
+      "priority": "优先级",
+      "status": "状态",
+      "collected_at": "采集时间"
+    },
+    "priority": {
+      "normal": "普通",
+      "urgent": "加急",
+      "stat": "急诊"
+    }
+  },
+  "worklist": {
+    "title": "工作清单",
+    "subtitle": "待检样本队列管理",
+    "total_pending": "待检总数",
+    "urgent_samples": "急诊样本",
+    "avg_wait": "平均等待",
+    "minutes": "分钟",
+    "start": "开始"
+  },
+  "orders": {
+    "title": "新建检验",
+    "subtitle": "创建新的检验样本和订单",
+    "steps": {
+      "patient": "1. 选择患者",
+      "tests": "2. 选择检验项目",
+      "confirm": "3. 确认订单"
+    },
+    "search_patient": "搜索患者...",
+    "no_patient_found": "未找到相关患者",
+    "add_patient": "新增患者",
+    "priority": "优先级",
+    "summary": {
+      "title": "订单摘要",
+      "patient": "患者",
+      "tests": "检验项目",
+      "count": "{{count}} 项"
+    },
+    "create_sample": "创建样本",
+    "messages": {
+      "select_patient": "请选择患者",
+      "select_tests": "请选择检验项目",
+      "success": "样本 {{id}} 创建成功",
+      "error": "创建失败，请重试"
+    }
+  },
+  "results": {
+    "title": "结果录入",
+    "subtitle": "审核和编辑检验结果",
+    "batch_verify": "批量审核",
+    "stats": {
+      "pending": "待审核",
+      "critical": "危急值",
+      "verified": "已审核"
+    },
+    "search_placeholder": "搜索样本 ID 或患者姓名...",
+    "table": {
+      "sample_id": "样本 ID",
+      "patient": "患者",
+      "test": "检验项目",
+      "result": "结果",
+      "unit": "单位",
+      "ref_range": "参考范围",
+      "flag": "标志",
+      "status": "状态"
+    },
+    "flags": {
+      "N": "正常",
+      "H": "偏高",
+      "L": "偏低",
+      "HH": "危急高",
+      "LL": "危急低"
+    },
+    "status": {
+      "verified": "已审核",
+      "pending": "待审核"
+    },
+    "messages": {
+      "verified_success": "结果已审核",
+      "verify_failed": "审核失败"
+    },
+    "no_data": "暂无结果数据"
+  },
+  "instruments": {
+    "title": "仪器管理",
+    "subtitle": "配置和监控实验室仪器连接",
+    "add_instrument": "添加仪器",
+    "stats": {
+      "online": "在线仪器",
+      "offline": "离线仪器",
+      "total": "总计仪器"
+    },
+    "no_instruments": "暂无仪器配置",
+    "status": {
+      "online": "在线",
+      "offline": "离线"
+    },
+    "fields": {
+      "connection_type": "连接方式",
+      "protocol": "通讯协议",
+      "port": "端口",
+      "baud_rate": "波特率",
+      "last_activity": "最后活动"
+    },
+    "connection_types": {
+      "serial": "RS-232 串口",
+      "tcp": "TCP/IP 网络",
+      "file": "文件监听"
+    },
+    "protocols": {
+      "astm": "ASTM E1394",
+      "hl7": "HL7 v2.x",
+      "csv": "CSV 文件"
+    },
+    "actions": {
+      "connect": "连接",
+      "disconnect": "断开",
+      "test": "测试",
+      "configure": "配置"
+    }
+  },
+  "unmatched": {
+    "title": "异常数据池",
+    "subtitle": "处理无法自动匹配的仪器数据",
+    "alert_title": "有 {{count}} 条仪器数据等待处理",
+    "alert_desc": "这些数据无法自动匹配到已登记的样本，请手动认领或丢弃",
+    "pending_list": "待处理数据",
+    "instrument_id": "仪器 ID",
+    "raw_id": "原始 ID",
+    "received_at": "接收时间",
+    "tests_count": "{{count}} 个检验项目",
+    "claim": "认领",
+    "discard": "丢弃",
+    "view": "查看",
+    "no_data": "没有待处理的异常数据",
+    "dialog": {
+      "title": "认领数据",
+      "label": "目标样本 ID",
+      "placeholder": "扫描或输入样本 ID (如 S-20260129-001)",
+      "confirm": "确认关联"
+    },
+    "messages": {
+      "confirm_discard": "确定要丢弃这条数据吗？此操作不可恢复。",
+      "sample_not_found": "未找到该样本 ID",
+      "claim_success": "数据已成功关联",
+      "claim_failed": "关联失败",
+      "discard_success": "数据已丢弃",
+      "discard_failed": "丢弃失败"
+    }
+  },
+  "auth": {
+    "login": "登录",
+    "username": "用户名",
+    "password": "密码",
+    "subtitle": "临床实验室信息管理系统",
+    "placeholder": {
+      "username": "请输入用户名",
+      "password": "请输入密码"
+    },
+    "footer": {
+      "version": "SimpleLIMS v0.1.0",
+      "slogan": "离线优先 · 数据安全"
+    }
+  },
+  "sidebar": {
+    "instrument_connected": "仪器连接: 正常",
+    "offline_mode": "离线模式"
+  },
+  "settings": {
+    "title": "系统设置",
+    "general": "常规设置",
+    "language": "语言",
+    "select_language": "选择语言",
+    "lab_info": "实验室信息",
+    "backup": "备份与恢复"
+  }
+}
