@@ -50,7 +50,18 @@
     "instrument_status": "Instrument Status",
     "no_instruments": "No instruments connected",
     "configure_instruments": "Configure in Instruments page",
-    "hours": "hours"
+    "hours": "hours",
+    "stats": {
+      "week_stats": "Weekly Statistics",
+      "avg_tat": "Average TAT",
+      "wip": "Statistics feature in progress"
+    },
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In Progress",
+      "pending": "Pending",
+      "registered": "Registered"
+    }
   },
   "patients": {
     "title": "Patient Management",
@@ -274,6 +285,115 @@
     "language": "Language",
     "select_language": "Select Language",
     "lab_info": "Laboratory Information",
-    "backup": "Backup & Restore"
+    "backup": "Backup & Restore",
+    "subtitle": "Configure laboratory information and system parameters",
+    "display_settings": "Display Settings",
+    "lab_info_desc": "This information will appear on report headers",
+    "backup_desc": "Regularly backup data to prevent data loss",
+    "security": "Security Settings",
+    "security_desc": "Manage user accounts and access permissions",
+    "license": "License",
+    "license_desc": "Software authorization information",
+    "form": {
+      "lab_name": "Laboratory Name",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "backup_section": {
+      "location": "Database Location",
+      "note": "Please backup to external storage regularly",
+      "backup_btn": "Backup Database",
+      "restore_btn": "Restore Database"
+    },
+    "license_section": {
+      "status": "License Status",
+      "activated": "Activated",
+      "trial": "Trial Version",
+      "permanent": "Permanent License",
+      "inactive": "Inactive",
+      "machine_id": "Machine ID",
+      "activated_at": "Activated Date",
+      "version": "Version"
+    },
+    "users": {
+      "admin": "Administrator",
+      "technician": "Lab Technician",
+      "change_password": "Change Password",
+      "add_user": "Add User"
+    },
+    "messages": {
+        "backup_location": "Please select backup location...",
+        "backup_success": "Database backup successful",
+        "backup_failed": "Backup failed",
+        "restore_confirm": "Restore database? Current data will be replaced.",
+        "restore_success": "Database restore successful, please restart app",
+        "restore_failed": "Restore failed"
+    }
+  },
+  "reports": {
+    "title": "Report Center",
+    "subtitle": "View, print and export test reports",
+    "stats": {
+      "today": "Completed Today",
+      "month": "Completed This Month",
+      "total": "Total Reports",
+      "total_samples": "Total Samples"
+    },
+    "search_placeholder": "Search Sample ID or Patient Name...",
+    "table": {
+      "sample_id": "Sample ID",
+      "patient": "Patient",
+      "tests": "Tests",
+      "status": "Status",
+      "completed_at": "Completed Date",
+      "actions": "Actions"
+    },
+    "no_data": "No completed reports found"
+  },
+  "catalog": {
+    "title": "Test Catalog",
+    "subtitle": "Manage test catalog and reference ranges",
+    "add_item": "Add Item",
+    "total_items": "Total {{count}} items",
+    "search_placeholder": "Search code or name...",
+    "table": {
+      "code": "Code",
+      "name": "Name",
+      "category": "Category",
+      "unit": "Unit",
+      "ref_male": "Ref Range (Male)",
+      "ref_female": "Ref Range (Female)",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "categories": {
+      "hematology": "Hematology",
+      "chemistry": "Chemistry",
+      "immuno": "Immunology",
+      "other": "Other"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "title_add": "Add Test Item",
+      "title_edit": "Edit Test Item",
+      "code": "Test Code",
+      "name": "Test Name",
+      "category": "Category",
+      "unit": "Unit",
+      "ref_range_male": "Reference Range (Male)",
+      "ref_range_female": "Reference Range (Female)",
+      "low": "Low",
+      "high": "High",
+      "sort": "Sort Order",
+      "decimals": "Decimal Places"
+    },
+    "messages": {
+      "create_success": "Created successfully",
+      "update_success": "Updated successfully"
+    }
   }
 }

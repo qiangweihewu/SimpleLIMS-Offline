@@ -50,7 +50,18 @@
     "instrument_status": "仪器状态",
     "no_instruments": "暂无仪器连接",
     "configure_instruments": "请在仪器管理中配置",
-    "hours": "小时"
+    "hours": "小时",
+    "stats": {
+      "week_stats": "本周统计",
+      "avg_tat": "平均 TAT",
+      "wip": "统计功能开发中"
+    },
+    "status": {
+      "completed": "已完成",
+      "in_progress": "检测中",
+      "pending": "待检",
+      "registered": "已登记"
+    }
   },
   "patients": {
     "title": "患者管理",
@@ -274,6 +285,115 @@
     "language": "语言",
     "select_language": "选择语言",
     "lab_info": "实验室信息",
-    "backup": "备份与恢复"
+    "backup": "备份与恢复",
+    "subtitle": "配置实验室信息和系统参数",
+    "display_settings": "显示设置",
+    "lab_info_desc": "这些信息将显示在报告抬头",
+    "backup_desc": "定期备份数据以防止数据丢失",
+    "security": "安全设置",
+    "security_desc": "管理用户账户和访问权限",
+    "license": "许可证",
+    "license_desc": "软件授权信息",
+    "form": {
+      "lab_name": "实验室名称",
+      "address": "地址",
+      "phone": "电话",
+      "email": "邮箱"
+    },
+    "backup_section": {
+      "location": "数据库位置",
+      "note": "请定期备份至外部存储设备",
+      "backup_btn": "备份数据库",
+      "restore_btn": "恢复数据库"
+    },
+    "license_section": {
+      "status": "许可证状态",
+      "activated": "已激活",
+      "trial": "试用版",
+      "permanent": "永久授权",
+      "inactive": "未激活",
+      "machine_id": "机器 ID",
+      "activated_at": "激活日期",
+      "version": "版本"
+    },
+    "users": {
+      "admin": "管理员",
+      "technician": "检验技师",
+      "change_password": "修改密码",
+      "add_user": "添加用户"
+    },
+    "messages": {
+        "backup_location": "请选择备份保存位置...",
+        "backup_success": "数据库备份成功",
+        "backup_failed": "备份失败",
+        "restore_confirm": "确定要恢复数据库吗？当前数据将被覆盖。",
+        "restore_success": "数据库恢复成功，请重启应用",
+        "restore_failed": "恢复失败"
+    }
+  },
+  "reports": {
+    "title": "报告中心",
+    "subtitle": "查看、打印和导出检验报告",
+    "stats": {
+      "today": "今日完成",
+      "month": "本月完成",
+      "total": "累计报告",
+      "total_samples": "总样本数"
+    },
+    "search_placeholder": "搜索样本 ID 或患者姓名...",
+    "table": {
+      "sample_id": "样本 ID",
+      "patient": "患者",
+      "tests": "检验项目",
+      "status": "状态",
+      "completed_at": "完成时间",
+      "actions": "操作"
+    },
+    "no_data": "没有找到已完成的报告"
+  },
+  "catalog": {
+    "title": "检验项目",
+    "subtitle": "管理检验项目目录和参考范围",
+    "add_item": "新增项目",
+    "total_items": "共 {{count}} 个项目",
+    "search_placeholder": "搜索项目代码或名称...",
+    "table": {
+      "code": "代码",
+      "name": "名称",
+      "category": "类别",
+      "unit": "单位",
+      "ref_male": "参考范围 (男)",
+      "ref_female": "参考范围 (女)",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "categories": {
+      "hematology": "血液学",
+      "chemistry": "生化",
+      "immuno": "免疫",
+      "other": "其他"
+    },
+    "status": {
+      "active": "启用",
+      "inactive": "停用"
+    },
+    "form": {
+      "title_add": "新增项目",
+      "title_edit": "编辑项目",
+      "code": "项目代码",
+      "name": "项目名称",
+      "category": "类别",
+      "unit": "单位",
+      "ref_range_male": "参考范围 (男性)",
+      "ref_range_female": "参考范围 (女性)",
+      "low": "下限",
+      "high": "上限",
+      "sort": "排序",
+      "decimals": "小数位数"
+    },
+    "messages": {
+      "create_success": "创建成功",
+      "update_success": "更新成功"
+    }
   }
 }

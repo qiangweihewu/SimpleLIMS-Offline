@@ -31,29 +31,29 @@ export function SettingsPage() {
 
   const handleBackup = async () => {
     try {
-      toast.info('请选择备份保存位置...');
+      toast.info(t('settings.messages.backup_location'));
       const success = await createBackup();
       if (success) {
-        toast.success('数据库备份成功');
+        toast.success(t('settings.messages.backup_success'));
       } else if (success === false) {
         // Cancelled or failed
       }
     } catch {
-      toast.error('备份失败');
+      toast.error(t('settings.messages.backup_failed'));
     }
   };
 
   const handleRestore = async () => {
-    if (confirm(t('common.confirm'))) {
+    if (confirm(t('settings.messages.restore_confirm'))) {
       try {
         const success = await restoreBackup();
         if (success) {
-          toast.success('数据库恢复成功，请重启应用');
+          toast.success(t('settings.messages.restore_success'));
         } else if (success === false) {
           // Cancelled or failed
         }
       } catch {
-        toast.error('恢复失败');
+        toast.error(t('settings.messages.restore_failed'));
       }
     }
   };
@@ -64,11 +64,11 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h1><p className="text-gray-500">配置实验室信息和系统参数</p></div>
+      <div><h1 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h1><p className="text-gray-500">{t('settings.subtitle')}</p></div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5" />{t('settings.general')}</CardTitle><CardDescription>语言和显示设置</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5" />{t('settings.general')}</CardTitle><CardDescription>{t('settings.display_settings')}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>{t('settings.language')}</Label>
@@ -81,55 +81,55 @@ export function SettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Building2 className="h-5 w-5" />{t('settings.lab_info')}</CardTitle><CardDescription>这些信息将显示在报告抬头</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Building2 className="h-5 w-5" />{t('settings.lab_info')}</CardTitle><CardDescription>{t('settings.lab_info_desc')}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2"><Label>实验室名称</Label><Input value={labSettings.lab_name} onChange={(e) => setLabSettings({ ...labSettings, lab_name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>地址</Label><Input value={labSettings.lab_address} onChange={(e) => setLabSettings({ ...labSettings, lab_address: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('settings.form.lab_name')}</Label><Input value={labSettings.lab_name} onChange={(e) => setLabSettings({ ...labSettings, lab_name: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t('settings.form.address')}</Label><Input value={labSettings.lab_address} onChange={(e) => setLabSettings({ ...labSettings, lab_address: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>电话</Label><Input value={labSettings.lab_phone} onChange={(e) => setLabSettings({ ...labSettings, lab_phone: e.target.value })} /></div>
-              <div className="space-y-2"><Label>邮箱</Label><Input value={labSettings.lab_email} onChange={(e) => setLabSettings({ ...labSettings, lab_email: e.target.value })} /></div>
+              <div className="space-y-2"><Label>{t('settings.form.phone')}</Label><Input value={labSettings.lab_phone} onChange={(e) => setLabSettings({ ...labSettings, lab_phone: e.target.value })} /></div>
+              <div className="space-y-2"><Label>{t('settings.form.email')}</Label><Input value={labSettings.lab_email} onChange={(e) => setLabSettings({ ...labSettings, lab_email: e.target.value })} /></div>
             </div>
             <Button onClick={handleSave}>{t('common.save')}</Button>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-5 w-5" />{t('settings.backup')}</CardTitle><CardDescription>定期备份数据以防止数据丢失</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-5 w-5" />{t('settings.backup')}</CardTitle><CardDescription>{t('settings.backup_desc')}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">数据库位置</p>
+              <p className="text-sm text-gray-600">{t('settings.backup_section.location')}</p>
               <p className="font-mono text-sm">~/SimpleLIMS/simplelims.db</p>
-              <p className="text-xs text-gray-400 mt-1">请定期备份至外部存储设备</p>
+              <p className="text-xs text-gray-400 mt-1">{t('settings.backup_section.note')}</p>
             </div>
             <div className="flex gap-4">
-              <Button onClick={handleBackup}><Download className="h-4 w-4 mr-2" />备份数据库</Button>
-              <Button variant="outline" onClick={handleRestore}><Upload className="h-4 w-4 mr-2" />恢复数据库</Button>
+              <Button onClick={handleBackup}><Download className="h-4 w-4 mr-2" />{t('settings.backup_section.backup_btn')}</Button>
+              <Button variant="outline" onClick={handleRestore}><Upload className="h-4 w-4 mr-2" />{t('settings.backup_section.restore_btn')}</Button>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="h-5 w-5" />安全设置</CardTitle><CardDescription>管理用户账户和访问权限</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Shield className="h-5 w-5" />{t('settings.security')}</CardTitle><CardDescription>{t('settings.security_desc')}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><div><p className="font-medium">admin</p><p className="text-sm text-gray-500">管理员</p></div><Button variant="outline" size="sm">修改密码</Button></div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><div><p className="font-medium">technician1</p><p className="text-sm text-gray-500">检验技师</p></div><Button variant="outline" size="sm">修改密码</Button></div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><div><p className="font-medium">admin</p><p className="text-sm text-gray-500">{t('settings.users.admin')}</p></div><Button variant="outline" size="sm">{t('settings.users.change_password')}</Button></div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"><div><p className="font-medium">technician1</p><p className="text-sm text-gray-500">{t('settings.users.technician')}</p></div><Button variant="outline" size="sm">{t('settings.users.change_password')}</Button></div>
             </div>
-            <Button variant="outline">添加用户</Button>
+            <Button variant="outline">{t('settings.users.add_user')}</Button>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Key className="h-5 w-5" />许可证</CardTitle><CardDescription>软件授权信息</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Key className="h-5 w-5" />{t('settings.license')}</CardTitle><CardDescription>{t('settings.license_desc')}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className={`p-4 border rounded-lg ${licenseInfo?.activated ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
-              <p className={`${licenseInfo?.activated ? 'text-green-800' : 'text-yellow-800'} font-medium`}>许可证状态: {licenseInfo?.activated ? '已激活' : '试用版'}</p>
-              <p className={`text-sm ${licenseInfo?.activated ? 'text-green-600' : 'text-yellow-600'}`}>{licenseInfo?.licenseType || 'Trial'} · {licenseInfo?.activated ? '永久授权' : '未激活'}</p>
+              <p className={`${licenseInfo?.activated ? 'text-green-800' : 'text-yellow-800'} font-medium`}>{t('settings.license_section.status')}: {licenseInfo?.activated ? t('settings.license_section.activated') : t('settings.license_section.trial')}</p>
+              <p className={`text-sm ${licenseInfo?.activated ? 'text-green-600' : 'text-yellow-600'}`}>{licenseInfo?.licenseType || 'Trial'} · {licenseInfo?.activated ? t('settings.license_section.permanent') : t('settings.license_section.inactive')}</p>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">机器 ID</span><span className="font-mono">{licenseInfo?.machineId || 'Loading...'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">激活日期</span><span>{licenseInfo?.activatedAt || '-'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">版本</span><span>v0.1.0</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('settings.license_section.machine_id')}</span><span className="font-mono">{licenseInfo?.machineId || t('common.loading')}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('settings.license_section.activated_at')}</span><span>{licenseInfo?.activatedAt || '-'}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('settings.license_section.version')}</span><span>v0.1.0</span></div>
             </div>
           </CardContent>
         </Card>

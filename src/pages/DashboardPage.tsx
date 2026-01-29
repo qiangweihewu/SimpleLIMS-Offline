@@ -10,14 +10,6 @@ const statusColors: Record<string, string> = {
   registered: 'bg-gray-100 text-gray-800',
 };
 
-// Simple map for now, ideally these should be in translation files
-const statusLabels: Record<string, string> = {
-  completed: '已完成',
-  in_progress: '检测中',
-  pending: '待检',
-  registered: '已登记',
-};
-
 export function DashboardPage() {
   const { t } = useTranslation();
   const { stats, loading } = useDashboard();
@@ -28,6 +20,10 @@ export function DashboardPage() {
     { key: 'dashboard.completed', value: stats.completedSamples, icon: ClipboardCheck, color: 'bg-green-500' },
     { key: 'dashboard.abnormal', value: stats.abnormalResults, icon: AlertTriangle, color: 'bg-red-500' },
   ];
+
+  const getStatusLabel = (status: string) => {
+    return t(`dashboard.status.${status}`) || status;
+  };
 
   return (
     <div className="space-y-6">
@@ -72,17 +68,17 @@ export function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {stats.recentSamples.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4">暂无最近样本</p>
+                  <p className="text-center text-gray-500 py-4">{t('dashboard.no_recent_samples')}</p>
                 ) : (
                   stats.recentSamples.map((sample) => (
                     <div key={sample.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium">{sample.sample_id}</p>
-                        <p className="text-sm text-gray-500">{sample.patient_name} · {sample.tests || '无项目'}</p>
+                        <p className="text-sm text-gray-500">{sample.patient_name} · {sample.tests || '-'}</p>
                       </div>
                       <div className="text-right">
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusColors[sample.status] || 'bg-gray-100'}`}>
-                          {statusLabels[sample.status] || sample.status}
+                          {getStatusLabel(sample.status)}
                         </span>
                         <p className="text-xs text-gray-400 mt-1">{sample.time}</p>
                       </div>
@@ -98,26 +94,26 @@ export function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              本周统计
+              {t('dashboard.stats.week_stats')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">总样本数</span>
+                <span className="text-gray-600">{t('dashboard.total_samples')}</span>
                 <span className="font-bold">--</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-blue-600 h-2 rounded-full" style={{ width: '0%' }} />
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">平均 TAT</span>
-                <span className="font-bold">-- 小时</span>
+                <span className="text-gray-600">{t('dashboard.avg_tat')}</span>
+                <span className="font-bold">-- {t('dashboard.hours')}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-green-600 h-2 rounded-full" style={{ width: '0%' }} />
               </div>
-              <p className="text-center text-xs text-gray-400 pt-2">统计功能开发中</p>
+              <p className="text-center text-xs text-gray-400 pt-2">{t('dashboard.stats.wip')}</p>
             </div>
           </CardContent>
         </Card>
@@ -125,7 +121,7 @@ export function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>仪器状态</CardTitle>
+          <CardTitle>{t('dashboard.instrument_status')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -133,8 +129,8 @@ export function DashboardPage() {
             <div className="flex items-center gap-3 p-4 border rounded-lg opacity-50">
               <div className="w-3 h-3 bg-gray-400 rounded-full" />
               <div>
-                <p className="font-medium">暂无仪器连接</p>
-                <p className="text-sm text-gray-500">请在仪器管理中配置</p>
+                <p className="font-medium">{t('dashboard.no_instruments')}</p>
+                <p className="text-sm text-gray-500">{t('dashboard.configure_instruments')}</p>
               </div>
             </div>
           </div>
