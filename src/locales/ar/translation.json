@@ -1,0 +1,399 @@
+{
+  "app": {
+    "name": "SimpleLIMS Offline",
+    "description": "نظام إدارة معلومات المختبر"
+  },
+  "nav": {
+    "dashboard": "لوحة القيادة",
+    "patients": "المرضى",
+    "samples": "العينات",
+    "orders": "طلب جديد",
+    "worklist": "قائمة العمل",
+    "results": "النتائج",
+    "reports": "التقارير",
+    "unmatched": "بيانات غير مطابقة",
+    "instruments": "الأجهزة",
+    "catalog": "فهرس الاختبارات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "search": "بحث",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "success": "نجاح",
+    "error": "خطأ",
+    "confirm": "تأكيد"
+  },
+  "dashboard": {
+    "welcome": "مرحباً بعودتك",
+    "overview": "نظرة عامة على المختبر",
+    "today_samples": "عينات اليوم",
+    "pending": "قيد الانتظار",
+    "completed": "مكتمل",
+    "abnormal": "نتائج غير طبيعية",
+    "recent_samples": "عينات حديثة",
+    "quick_actions": "إجراءات سريعة",
+    "register_patient": "تسجيل مريض",
+    "receive_sample": "استلام عينة",
+    "print_barcode": "طباعة باركود",
+    "no_recent_samples": "لا توجد عينات حديثة",
+    "total_samples": "إجمالي العينات",
+    "avg_tat": "متوسط وقت التنفيذ",
+    "stats_wip": "ميزة الإحصائيات قيد التطوير",
+    "instrument_status": "حالة الأجهزة",
+    "no_instruments": "لا توجد أجهزة متصلة",
+    "configure_instruments": "تكوين في صفحة الأجهزة",
+    "hours": "ساعات",
+    "stats": {
+      "week_stats": "إحصائيات أسبوعية",
+      "avg_tat": "متوسط وقت التنفيذ",
+      "wip": "ميزة الإحصائيات قيد التطوير"
+    },
+    "status": {
+      "completed": "مكتمل",
+      "in_progress": "قيد التنفيذ",
+      "pending": "قيد الانتظار",
+      "registered": "مسجل"
+    }
+  },
+  "patients": {
+    "title": "إدارة المرضى",
+    "subtitle": "إدارة معلومات وتاريخ المرضى",
+    "add_patient": "إضافة مريض",
+    "total_patients": "إجمالي {{count}} مريض",
+    "no_data": "لم يتم العثور على مرضى، يرجى إضافة واحد",
+    "form": {
+      "title": "مريض جديد",
+      "first_name": "الاسم الأول",
+      "last_name": "اسم العائلة",
+      "gender": "الجنس",
+      "dob": "تاريخ الميلاد",
+      "phone": "الهاتف",
+      "address": "العنوان"
+    },
+    "table": {
+      "id": "رقم المريض",
+      "name": "الاسم",
+      "gender": "الجنس",
+      "age": "العمر",
+      "phone": "الهاتف",
+      "registered_at": "تاريخ التسجيل"
+    },
+    "gender": {
+      "male": "ذكر",
+      "female": "أنثى",
+      "other": "آخر"
+    },
+    "actions": {
+      "order": "طلب"
+    }
+  },
+  "samples": {
+    "title": "إدارة العينات",
+    "subtitle": "عرض وإدارة جميع عينات المختبر",
+    "new_sample": "عينة جديدة",
+    "total_samples": "إجمالي {{count}} عينة",
+    "no_data": "لا توجد بيانات عينات",
+    "search_placeholder": "بحث برقم العينة، اسم المريض...",
+    "status_filter": {
+      "all": "كل الحالات",
+      "registered": "مسجل",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل"
+    },
+    "table": {
+      "sample_id": "رقم العينة",
+      "patient": "المريض",
+      "tests": "الاختبارات",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "collected_at": "تاريخ الجمع"
+    },
+    "priority": {
+      "normal": "عادي",
+      "urgent": "عاجل",
+      "stat": "فوري"
+    }
+  },
+  "worklist": {
+    "title": "قائمة العمل",
+    "subtitle": "إدارة طابور العينات المعلقة",
+    "total_pending": "إجمالي المعلق",
+    "urgent_samples": "عينات عاجلة",
+    "avg_wait": "متوسط الانتظار",
+    "minutes": "دقيقة",
+    "start": "بدء"
+  },
+  "orders": {
+    "title": "طلب جديد",
+    "subtitle": "إنشاء عينة وطلبات جديدة",
+    "steps": {
+      "patient": "1. اختيار المريض",
+      "tests": "2. اختيار الاختبارات",
+      "confirm": "3. تأكيد الطلب"
+    },
+    "search_patient": "بحث عن مريض...",
+    "no_patient_found": "لم يتم العثور على مريض",
+    "add_patient": "إضافة مريض",
+    "priority": "الأولوية",
+    "summary": {
+      "title": "ملخص الطلب",
+      "patient": "المريض",
+      "tests": "الاختبارات",
+      "count": "{{count}} عنصر"
+    },
+    "create_sample": "إنشاء عينة",
+    "messages": {
+      "select_patient": "يرجى اختيار مريض",
+      "select_tests": "يرجى اختيار اختبارات",
+      "success": "تم إنشاء العينة {{id}} بنجاح",
+      "error": "فشل الإنشاء، يرجى إعادة المحاولة"
+    }
+  },
+  "results": {
+    "title": "إدخال النتائج",
+    "subtitle": "مراجعة وتعديل نتائج الاختبارات",
+    "batch_verify": "تحقق جماعي",
+    "stats": {
+      "pending": "قيد الانتظار",
+      "critical": "حرج",
+      "verified": "تم التحقق"
+    },
+    "search_placeholder": "بحث برقم العينة أو اسم المريض...",
+    "table": {
+      "sample_id": "رقم العينة",
+      "patient": "المريض",
+      "test": "الاختبار",
+      "result": "النتيجة",
+      "unit": "الوحدة",
+      "ref_range": "المعدل الطبيعي",
+      "flag": "العلامة",
+      "status": "الحالة"
+    },
+    "flags": {
+      "N": "طبيعي",
+      "H": "مرتفع",
+      "L": "منخفض",
+      "HH": "مرتفع جداً",
+      "LL": "منخفض جداً"
+    },
+    "status": {
+      "verified": "تم التحقق",
+      "pending": "قيد الانتظار"
+    },
+    "messages": {
+      "verified_success": "تم التحقق من النتيجة",
+      "verify_failed": "فشل التحقق"
+    },
+    "no_data": "لا توجد نتائج"
+  },
+  "instruments": {
+    "title": "إدارة الأجهزة",
+    "subtitle": "تكوين ومراقبة أجهزة المختبر",
+    "add_instrument": "إضافة جهاز",
+    "stats": {
+      "online": "متصل",
+      "offline": "غير متصل",
+      "total": "إجمالي الأجهزة"
+    },
+    "no_instruments": "لم يتم تكوين أجهزة",
+    "status": {
+      "online": "متصل",
+      "offline": "غير متصل"
+    },
+    "fields": {
+      "connection_type": "نوع الاتصال",
+      "protocol": "البروتوكول",
+      "port": "المنفذ",
+      "baud_rate": "معدل النقل",
+      "last_activity": "آخر نشاط"
+    },
+    "connection_types": {
+      "serial": "تسلسلي RS-232",
+      "tcp": "شبكة TCP/IP",
+      "file": "مراقبة ملف"
+    },
+    "protocols": {
+      "astm": "ASTM E1394",
+      "hl7": "HL7 v2.x",
+      "csv": "ملف CSV"
+    },
+    "actions": {
+      "connect": "اتصال",
+      "disconnect": "فصل",
+      "test": "اختبار",
+      "configure": "تكوين"
+    }
+  },
+  "unmatched": {
+    "title": "بيانات غير مطابقة",
+    "subtitle": "معالجة نتائج الأجهزة غير المعينة",
+    "alert_title": "{{count}} نتائج غير معينة في الانتظار",
+    "alert_desc": "لم يتم مطابقة هذه النتائج تلقائياً. يرجى المطالبة أو التجاهل.",
+    "pending_list": "قائمة الانتظار",
+    "instrument_id": "معرف الجهاز",
+    "raw_id": "المعرف الخام",
+    "received_at": "تاريخ الاستلام",
+    "tests_count": "{{count}} اختبارات",
+    "claim": "مطالبة",
+    "discard": "تجاهل",
+    "view": "عرض",
+    "no_data": "لا توجد بيانات غير مطابقة معلقة",
+    "dialog": {
+      "title": "مطالبة بالبيانات",
+      "label": "رقم العينة المستهدف",
+      "placeholder": "مسح أو إدخال رقم العينة",
+      "confirm": "تأكيد الربط"
+    },
+    "messages": {
+      "confirm_discard": "هل أنت متأكد من تجاهل هذه البيانات؟ لا يمكن التراجع عن هذا.",
+      "sample_not_found": "رقم العينة غير موجود",
+      "claim_success": "تم ربط البيانات بنجاح",
+      "claim_failed": "فشل ربط البيانات",
+      "discard_success": "تم تجاهل البيانات",
+      "discard_failed": "فشل التجاهل"
+    }
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "subtitle": "نظام إدارة معلومات المختبر الطبي",
+    "placeholder": {
+      "username": "أدخل اسم المستخدم",
+      "password": "أدخل كلمة المرور"
+    },
+    "footer": {
+      "version": "SimpleLIMS v0.1.0",
+      "slogan": "دون اتصال أولاً · بيانات آمنة"
+    }
+  },
+  "sidebar": {
+    "instrument_connected": "الجهاز: متصل",
+    "offline_mode": "وضع عدم الاتصال"
+  },
+  "settings": {
+    "title": "إعدادات النظام",
+    "general": "عام",
+    "language": "اللغة",
+    "select_language": "اختر اللغة",
+    "lab_info": "معلومات المختبر",
+    "backup": "النسخ الاحتياطي والاستعادة",
+    "subtitle": "تكوين معلومات المختبر ومعلمات النظام",
+    "display_settings": "إعدادات العرض",
+    "lab_info_desc": "ستظهر هذه المعلومات في ترويسة التقارير",
+    "backup_desc": "قم بالنسخ الاحتياطي للبيانات بانتظام لمنع الفقدان",
+    "security": "إعدادات الأمان",
+    "security_desc": "إدارة حسابات المستخدمين وصلاحيات الوصول",
+    "license": "الترخيص",
+    "license_desc": "معلومات ترخيص البرنامج",
+    "form": {
+      "lab_name": "اسم المختبر",
+      "address": "العنوان",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني"
+    },
+    "backup_section": {
+      "location": "موقع قاعدة البيانات",
+      "note": "يرجى النسخ الاحتياطي إلى تخزين خارجي بانتظام",
+      "backup_btn": "نسخ احتياطي لقاعدة البيانات",
+      "restore_btn": "استعادة قاعدة البيانات"
+    },
+    "license_section": {
+      "status": "حالة الترخيص",
+      "activated": "مفعل",
+      "trial": "نسخة تجريبية",
+      "permanent": "ترخيص دائم",
+      "inactive": "غير نشط",
+      "machine_id": "معرف الجهاز",
+      "activated_at": "تاريخ التفعيل",
+      "version": "الإصدار"
+    },
+    "users": {
+      "admin": "مسؤول",
+      "technician": "فني مختبر",
+      "change_password": "تغيير كلمة المرور",
+      "add_user": "إضافة مستخدم"
+    },
+    "messages": {
+        "backup_location": "يرجى اختيار موقع النسخ الاحتياطي...",
+        "backup_success": "نجح النسخ الاحتياطي لقاعدة البيانات",
+        "backup_failed": "فشل النسخ الاحتياطي",
+        "restore_confirm": "استعادة قاعدة البيانات؟ سيتم استبدال البيانات الحالية.",
+        "restore_success": "نجحت الاستعادة، يرجى إعادة تشغيل التطبيق",
+        "restore_failed": "فشلت الاستعادة"
+    }
+  },
+  "reports": {
+    "title": "مركز التقارير",
+    "subtitle": "عرض وطباعة وتصدير تقارير الاختبارات",
+    "stats": {
+      "today": "مكتمل اليوم",
+      "month": "مكتمل هذا الشهر",
+      "total": "إجمالي التقارير",
+      "total_samples": "إجمالي العينات"
+    },
+    "search_placeholder": "بحث برقم العينة أو اسم المريض...",
+    "table": {
+      "sample_id": "رقم العينة",
+      "patient": "المريض",
+      "tests": "الاختبارات",
+      "status": "الحالة",
+      "completed_at": "تاريخ الإكمال",
+      "actions": "الإجراءات"
+    },
+    "no_data": "لم يتم العثور على تقارير مكتملة"
+  },
+  "catalog": {
+    "title": "فهرس الاختبارات",
+    "subtitle": "إدارة فهرس الاختبارات والمعدلات الطبيعية",
+    "add_item": "إضافة عنصر",
+    "total_items": "إجمالي {{count}} عنصر",
+    "search_placeholder": "بحث بالكود أو الاسم...",
+    "table": {
+      "code": "الكود",
+      "name": "الاسم",
+      "category": "الفئة",
+      "unit": "الوحدة",
+      "ref_male": "معدل طبيعي (ذكر)",
+      "ref_female": "معدل طبيعي (أنثى)",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "categories": {
+      "hematology": "أمراض الدم",
+      "chemistry": "كيمياء",
+      "immuno": "مناهة",
+      "other": "آخر"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "form": {
+      "title_add": "إضافة عنصر اختبار",
+      "title_edit": "تعديل عنصر اختبار",
+      "code": "كود الاختبار",
+      "name": "اسم الاختبار",
+      "category": "الفئة",
+      "unit": "الوحدة",
+      "ref_range_male": "المعدل الطبيعي (ذكر)",
+      "ref_range_female": "المعدل الطبيعي (أنثى)",
+      "low": "منخفض",
+      "high": "مرتفع",
+      "sort": "ترتيب",
+      "decimals": "المنازل العشرية"
+    },
+    "messages": {
+      "create_success": "تم الإنشاء بنجاح",
+      "update_success": "تم التحديث بنجاح"
+    }
+  }
+}

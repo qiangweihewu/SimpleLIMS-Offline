@@ -75,6 +75,10 @@ export function SettingsPage() {
               <Select value={i18n.language.split('-')[0]} onChange={(e) => i18n.changeLanguage(e.target.value)}>
                 <option value="zh">中文 (简体)</option>
                 <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="pt">Português</option>
+                <option value="ar">العربية</option>
               </Select>
             </div>
           </CardContent>

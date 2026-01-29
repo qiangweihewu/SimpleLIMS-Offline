@@ -1,0 +1,399 @@
+{
+  "app": {
+    "name": "SimpleLIMS Offline",
+    "description": "Sistema de Gestión de Información de Laboratorio"
+  },
+  "nav": {
+    "dashboard": "Tablero",
+    "patients": "Pacientes",
+    "samples": "Muestras",
+    "orders": "Nuevo Pedido",
+    "worklist": "Lista de Trabajo",
+    "results": "Resultados",
+    "reports": "Informes",
+    "unmatched": "Datos No Coincidentes",
+    "instruments": "Instrumentos",
+    "catalog": "Catálogo de Pruebas",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "status": "Estado",
+    "actions": "Acciones",
+    "success": "Éxito",
+    "error": "Error",
+    "confirm": "Confirmar"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido de nuevo",
+    "overview": "Resumen del Laboratorio",
+    "today_samples": "Muestras de Hoy",
+    "pending": "Pendiente",
+    "completed": "Completado",
+    "abnormal": "Resultados Anormales",
+    "recent_samples": "Muestras Recientes",
+    "quick_actions": "Acciones Rápidas",
+    "register_patient": "Registrar Paciente",
+    "receive_sample": "Recibir Muestra",
+    "print_barcode": "Imprimir Código de Barras",
+    "no_recent_samples": "Sin muestras recientes",
+    "total_samples": "Total de Muestras",
+    "avg_tat": "TAT Promedio",
+    "stats_wip": "Función de estadísticas en progreso",
+    "instrument_status": "Estado del Instrumento",
+    "no_instruments": "Sin instrumentos conectados",
+    "configure_instruments": "Configurar en página de Instrumentos",
+    "hours": "horas",
+    "stats": {
+      "week_stats": "Estadísticas Semanales",
+      "avg_tat": "TAT Promedio",
+      "wip": "Función de estadísticas en progreso"
+    },
+    "status": {
+      "completed": "Completado",
+      "in_progress": "En Progreso",
+      "pending": "Pendiente",
+      "registered": "Registrado"
+    }
+  },
+  "patients": {
+    "title": "Gestión de Pacientes",
+    "subtitle": "Gestionar información e historial de pacientes",
+    "add_patient": "Agregar Paciente",
+    "total_patients": "Total {{count}} pacientes",
+    "no_data": "No se encontraron pacientes, por favor agregue uno",
+    "form": {
+      "title": "Nuevo Paciente",
+      "first_name": "Nombre",
+      "last_name": "Apellido",
+      "gender": "Género",
+      "dob": "Fecha de Nacimiento",
+      "phone": "Teléfono",
+      "address": "Dirección"
+    },
+    "table": {
+      "id": "ID Paciente",
+      "name": "Nombre",
+      "gender": "Género",
+      "age": "Edad",
+      "phone": "Teléfono",
+      "registered_at": "Fecha Registro"
+    },
+    "gender": {
+      "male": "Masculino",
+      "female": "Femenino",
+      "other": "Otro"
+    },
+    "actions": {
+      "order": "Pedido"
+    }
+  },
+  "samples": {
+    "title": "Gestión de Muestras",
+    "subtitle": "Ver y gestionar todas las muestras del laboratorio",
+    "new_sample": "Nueva Muestra",
+    "total_samples": "Total {{count}} muestras",
+    "no_data": "Sin datos de muestras",
+    "search_placeholder": "Buscar ID Muestra, Nombre Paciente...",
+    "status_filter": {
+      "all": "Todos los Estados",
+      "registered": "Registrado",
+      "in_progress": "En Progreso",
+      "completed": "Completado"
+    },
+    "table": {
+      "sample_id": "ID Muestra",
+      "patient": "Paciente",
+      "tests": "Pruebas",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "collected_at": "Recolectado En"
+    },
+    "priority": {
+      "normal": "Normal",
+      "urgent": "Urgente",
+      "stat": "STAT"
+    }
+  },
+  "worklist": {
+    "title": "Lista de Trabajo",
+    "subtitle": "Gestión de cola de muestras pendientes",
+    "total_pending": "Total Pendientes",
+    "urgent_samples": "Muestras Urgentes",
+    "avg_wait": "Espera Promedio",
+    "minutes": "mins",
+    "start": "Iniciar"
+  },
+  "orders": {
+    "title": "Nuevo Pedido",
+    "subtitle": "Crear nueva muestra y pedidos",
+    "steps": {
+      "patient": "1. Seleccionar Paciente",
+      "tests": "2. Seleccionar Pruebas",
+      "confirm": "3. Confirmar Pedido"
+    },
+    "search_patient": "Buscar paciente...",
+    "no_patient_found": "No se encontró paciente",
+    "add_patient": "Agregar Paciente",
+    "priority": "Prioridad",
+    "summary": {
+      "title": "Resumen del Pedido",
+      "patient": "Paciente",
+      "tests": "Pruebas",
+      "count": "{{count}} ítems"
+    },
+    "create_sample": "Crear Muestra",
+    "messages": {
+      "select_patient": "Por favor seleccione un paciente",
+      "select_tests": "Por favor seleccione pruebas",
+      "success": "Muestra {{id}} creada exitosamente",
+      "error": "Creación fallida, por favor reintente"
+    }
+  },
+  "results": {
+    "title": "Entrada de Resultados",
+    "subtitle": "Revisar y editar resultados de pruebas",
+    "batch_verify": "Verificación por Lotes",
+    "stats": {
+      "pending": "Pendiente",
+      "critical": "Crítico",
+      "verified": "Verificado"
+    },
+    "search_placeholder": "Buscar ID Muestra o Nombre Paciente...",
+    "table": {
+      "sample_id": "ID Muestra",
+      "patient": "Paciente",
+      "test": "Prueba",
+      "result": "Resultado",
+      "unit": "Unidad",
+      "ref_range": "Rango Ref",
+      "flag": "Bandera",
+      "status": "Estado"
+    },
+    "flags": {
+      "N": "Normal",
+      "H": "Alto",
+      "L": "Bajo",
+      "HH": "Crítico Alto",
+      "LL": "Crítico Bajo"
+    },
+    "status": {
+      "verified": "Verificado",
+      "pending": "Pendiente"
+    },
+    "messages": {
+      "verified_success": "Resultado verificado",
+      "verify_failed": "Verificación fallida"
+    },
+    "no_data": "Sin datos de resultados"
+  },
+  "instruments": {
+    "title": "Gestión de Instrumentos",
+    "subtitle": "Configurar y monitorear instrumentos de laboratorio",
+    "add_instrument": "Agregar Instrumento",
+    "stats": {
+      "online": "En Línea",
+      "offline": "Desconectado",
+      "total": "Total Instrumentos"
+    },
+    "no_instruments": "Sin instrumentos configurados",
+    "status": {
+      "online": "En Línea",
+      "offline": "Desconectado"
+    },
+    "fields": {
+      "connection_type": "Tipo de Conexión",
+      "protocol": "Protocolo",
+      "port": "Puerto",
+      "baud_rate": "Tasa de Baudios",
+      "last_activity": "Última Actividad"
+    },
+    "connection_types": {
+      "serial": "Serie RS-232",
+      "tcp": "Red TCP/IP",
+      "file": "Observación de Archivo"
+    },
+    "protocols": {
+      "astm": "ASTM E1394",
+      "hl7": "HL7 v2.x",
+      "csv": "Archivo CSV"
+    },
+    "actions": {
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "test": "Probar",
+      "configure": "Configurar"
+    }
+  },
+  "unmatched": {
+    "title": "Datos No Coincidentes",
+    "subtitle": "Procesar resultados de instrumentos no mapeados",
+    "alert_title": "{{count}} resultados no mapeados esperando",
+    "alert_desc": "Estos resultados no pudieron ser emparejados automáticamente. Por favor reclamar o descartar.",
+    "pending_list": "Lista Pendiente",
+    "instrument_id": "ID Instrumento",
+    "raw_id": "ID Crudo",
+    "received_at": "Recibido En",
+    "tests_count": "{{count}} pruebas",
+    "claim": "Reclamar",
+    "discard": "Descartar",
+    "view": "Ver",
+    "no_data": "Sin datos no coincidentes pendientes",
+    "dialog": {
+      "title": "Reclamar Datos",
+      "label": "ID Muestra Objetivo",
+      "placeholder": "Escanear o ingresar ID Muestra",
+      "confirm": "Confirmar Enlace"
+    },
+    "messages": {
+      "confirm_discard": "¿Está seguro de querer descartar estos datos? Esto no se puede deshacer.",
+      "sample_not_found": "ID Muestra no encontrado",
+      "claim_success": "Datos enlazados exitosamente",
+      "claim_failed": "Fallo al enlazar datos",
+      "discard_success": "Datos descartados",
+      "discard_failed": "Fallo al descartar"
+    }
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "subtitle": "Sistema de Gestión de Información de Laboratorio Clínico",
+    "placeholder": {
+      "username": "Ingrese usuario",
+      "password": "Ingrese contraseña"
+    },
+    "footer": {
+      "version": "SimpleLIMS v0.1.0",
+      "slogan": "Primero Offline · Datos Seguros"
+    }
+  },
+  "sidebar": {
+    "instrument_connected": "Instrumento: Conectado",
+    "offline_mode": "Modo Offline"
+  },
+  "settings": {
+    "title": "Configuración del Sistema",
+    "general": "General",
+    "language": "Idioma",
+    "select_language": "Seleccionar Idioma",
+    "lab_info": "Información del Laboratorio",
+    "backup": "Respaldo y Restauración",
+    "subtitle": "Configurar información del laboratorio y parámetros del sistema",
+    "display_settings": "Configuración de Pantalla",
+    "lab_info_desc": "Esta información aparecerá en los encabezados de informes",
+    "backup_desc": "Respalde datos regularmente para prevenir pérdida",
+    "security": "Configuración de Seguridad",
+    "security_desc": "Gestionar cuentas de usuario y permisos de acceso",
+    "license": "Licencia",
+    "license_desc": "Información de autorización de software",
+    "form": {
+      "lab_name": "Nombre del Laboratorio",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "email": "Correo Electrónico"
+    },
+    "backup_section": {
+      "location": "Ubicación de Base de Datos",
+      "note": "Por favor respalde a almacenamiento externo regularmente",
+      "backup_btn": "Respaldar Base de Datos",
+      "restore_btn": "Restaurar Base de Datos"
+    },
+    "license_section": {
+      "status": "Estado de Licencia",
+      "activated": "Activado",
+      "trial": "Versión de Prueba",
+      "permanent": "Licencia Permanente",
+      "inactive": "Inactivo",
+      "machine_id": "ID Máquina",
+      "activated_at": "Fecha de Activación",
+      "version": "Versión"
+    },
+    "users": {
+      "admin": "Administrador",
+      "technician": "Técnico de Lab",
+      "change_password": "Cambiar Contraseña",
+      "add_user": "Agregar Usuario"
+    },
+    "messages": {
+        "backup_location": "Por favor seleccione ubicación de respaldo...",
+        "backup_success": "Respaldo de base de datos exitoso",
+        "backup_failed": "Fallo en respaldo",
+        "restore_confirm": "¿Restaurar base de datos? Los datos actuales serán reemplazados.",
+        "restore_success": "Restauración exitosa, por favor reinicie la app",
+        "restore_failed": "Fallo en restauración"
+    }
+  },
+  "reports": {
+    "title": "Centro de Informes",
+    "subtitle": "Ver, imprimir y exportar informes de pruebas",
+    "stats": {
+      "today": "Completados Hoy",
+      "month": "Completados Este Mes",
+      "total": "Total Informes",
+      "total_samples": "Total Muestras"
+    },
+    "search_placeholder": "Buscar ID Muestra o Nombre Paciente...",
+    "table": {
+      "sample_id": "ID Muestra",
+      "patient": "Paciente",
+      "tests": "Pruebas",
+      "status": "Estado",
+      "completed_at": "Fecha Completado",
+      "actions": "Acciones"
+    },
+    "no_data": "No se encontraron informes completados"
+  },
+  "catalog": {
+    "title": "Catálogo de Pruebas",
+    "subtitle": "Gestionar catálogo de pruebas y rangos de referencia",
+    "add_item": "Agregar Ítem",
+    "total_items": "Total {{count}} ítems",
+    "search_placeholder": "Buscar código o nombre...",
+    "table": {
+      "code": "Código",
+      "name": "Nombre",
+      "category": "Categoría",
+      "unit": "Unidad",
+      "ref_male": "Rango Ref (Masculino)",
+      "ref_female": "Rango Ref (Femenino)",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "categories": {
+      "hematology": "Hematología",
+      "chemistry": "Química",
+      "immuno": "Inmunología",
+      "other": "Otro"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "form": {
+      "title_add": "Agregar Ítem de Prueba",
+      "title_edit": "Editar Ítem de Prueba",
+      "code": "Código de Prueba",
+      "name": "Nombre de Prueba",
+      "category": "Categoría",
+      "unit": "Unidad",
+      "ref_range_male": "Rango de Referencia (Masculino)",
+      "ref_range_female": "Rango de Referencia (Femenino)",
+      "low": "Bajo",
+      "high": "Alto",
+      "sort": "Orden",
+      "decimals": "Decimales"
+    },
+    "messages": {
+      "create_success": "Creado exitosamente",
+      "update_success": "Actualizado exitosamente"
+    }
+  }
+}
