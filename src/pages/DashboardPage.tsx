@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TestTubes, Clock, ClipboardCheck, AlertTriangle, TrendingUp, Loader2 } from 'lucide-react';
 import { useDashboard } from '@/hooks/use-dashboard';
 import { useTranslation } from 'react-i18next';
+import { getPatientNameFromObject } from '@/lib/utils';
+import { InstrumentStatusWidget } from '@/components/instruments/InstrumentStatusWidget';
 
 const statusColors: Record<string, string> = {
   completed: 'bg-green-100 text-green-800',
@@ -11,7 +13,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function DashboardPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { stats, loading } = useDashboard();
 
   const statCards = [
@@ -74,7 +76,7 @@ export function DashboardPage() {
                     <div key={sample.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium">{sample.sample_id}</p>
-                        <p className="text-sm text-gray-500">{sample.patient_name} · {sample.tests || '-'}</p>
+                        <p className="text-sm text-gray-500">{getPatientNameFromObject(sample, i18n.language)} · {sample.tests || '-'}</p>
                       </div>
                       <div className="text-right">
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusColors[sample.status] || 'bg-gray-100'}`}>
@@ -119,23 +121,7 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('dashboard.instrument_status')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             {/* Instrument status will be implemented later with real data */}
-            <div className="flex items-center gap-3 p-4 border rounded-lg opacity-50">
-              <div className="w-3 h-3 bg-gray-400 rounded-full" />
-              <div>
-                <p className="font-medium">{t('dashboard.no_instruments')}</p>
-                <p className="text-sm text-gray-500">{t('dashboard.configure_instruments')}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <InstrumentStatusWidget />
     </div>
   );
 }

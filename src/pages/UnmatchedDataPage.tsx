@@ -7,13 +7,13 @@ import { AlertCircle, Link2, Trash2, Eye, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUnmatchedData } from '@/hooks/use-unmatched-data';
 import { sampleService } from '@/services/database.service';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export function UnmatchedDataPage() {
   const { t } = useTranslation();
-  const { data, loading, claimData, discardData } = useUnmatchedData();
+  const { data, loading, claimData, discardData, pagination } = useUnmatchedData();
   const [claimDialogOpen, setClaimDialogOpen] = useState(false);
   const [selectedDataId, setSelectedDataId] = useState<number | null>(null);
   const [targetSampleId, setTargetSampleId] = useState('');
@@ -89,7 +89,7 @@ export function UnmatchedDataPage() {
               {data.map((item) => {
                 const parsed = item.parsed_data ? JSON.parse(item.parsed_data) : {};
                 const results = parsed.results || [];
-                const preview = results.map((r: { universalTestId: string; dataValue: string }) => 
+                const preview = results.map((r: { universalTestId: string; dataValue: string }) =>
                   `${r.universalTestId?.split('^')[3] || r.universalTestId}: ${r.dataValue}`
                 ).join(', ').slice(0, 50) + '...';
 
@@ -121,28 +121,37 @@ export function UnmatchedDataPage() {
               )}
             </div>
           )}
+          <div className="flex items-center justify-end space-x-2 border-t pt-4">
+            <div className="text-sm text-gray-500 mr-4">{t('common.total')}: {pagination.total}</div>
+            <Button variant="outline" size="sm" onClick={() => pagination.setPage(p => Math.max(1, p - 1))} disabled={pagination.page === 1}>{t('common.previous')}</Button>
+            <span className="text-sm text-gray-500">{t('common.page_of', { page: pagination.page, total: pagination.totalPages || 1 })}</span>
+            <Button variant="outline" size="sm" onClick={() => pagination.setPage(p => Math.min(pagination.totalPages, p + 1))} disabled={pagination.page === pagination.totalPages}>{t('common.next')}</Button>
+          </div>
         </CardContent>
       </Card>
 
       <Dialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('unmatched.dialog.title')}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="sample-id">{t('unmatched.dialog.label')}</Label>
+        <DialogContent className="p-0 overflow-hidden border border-gray-200 bg-white shadow-lg sm:max-w-[450px]">
+          <div className="bg-blue-600 px-6 py-4">
+            <DialogTitle className="text-xl font-bold text-white">
+              {t('unmatched.dialog.title')}
+            </DialogTitle>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="sample-id" className="text-xs font-semibold text-gray-700">{t('unmatched.dialog.label')}</Label>
               <Input
                 id="sample-id"
                 value={targetSampleId}
                 onChange={(e) => setTargetSampleId(e.target.value)}
                 placeholder={t('unmatched.dialog.placeholder')}
+                className="h-11"
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="p-6 pt-2 border-t border-gray-100 flex gap-2">
             <Button variant="outline" onClick={() => setClaimDialogOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleClaimSubmit} disabled={verifying || !targetSampleId}>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleClaimSubmit} disabled={verifying || !targetSampleId}>
               {verifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('unmatched.dialog.confirm')}
             </Button>

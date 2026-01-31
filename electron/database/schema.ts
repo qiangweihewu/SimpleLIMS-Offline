@@ -1,7 +1,7 @@
 // SimpleLIMS-Offline Database Schema
 // SQLite with WAL mode for concurrent read/write
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 3;
 
 export const CREATE_TABLES_SQL = `
 -- Enable WAL mode for better concurrency
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS test_panels (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  name_en TEXT,
+  name_en TEXT, -- English name for bilingual reports
   category TEXT NOT NULL, -- hematology, chemistry, urinalysis, immunology
   unit TEXT,
   ref_range_male_low REAL,
@@ -70,7 +70,9 @@ CREATE TABLE IF NOT EXISTS test_packages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
+  name_en TEXT, -- English name
   description TEXT,
+  description_en TEXT, -- English description
   price REAL,
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -132,6 +134,7 @@ CREATE TABLE IF NOT EXISTS results (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_results_order_id ON results(order_id);
 
 -- Instruments
 CREATE TABLE IF NOT EXISTS instruments (
@@ -155,6 +158,8 @@ CREATE TABLE IF NOT EXISTS instruments (
   -- File watch settings
   watch_folder TEXT,
   file_pattern TEXT,
+  -- CSV parsing config (JSON string)
+  csv_config TEXT,
   -- Status
   is_active INTEGER NOT NULL DEFAULT 1,
   is_connected INTEGER NOT NULL DEFAULT 0,
@@ -258,44 +263,74 @@ INSERT OR REPLACE INTO schema_version (version) VALUES (${SCHEMA_VERSION});
 
 // Default test panels (CBC, CMP, etc.)
 export const SEED_TEST_PANELS_SQL = `
-INSERT OR IGNORE INTO test_panels (code, name, name_en, category, unit, ref_range_male_low, ref_range_male_high, ref_range_female_low, ref_range_female_high, decimal_places, sort_order) VALUES
+INSERT OR IGNORE INTO test_panels (code, name, category, unit, ref_range_male_low, ref_range_male_high, ref_range_female_low, ref_range_female_high, decimal_places, sort_order) VALUES
 -- Hematology - CBC
-('WBC', '白细胞计数', 'White Blood Cell', 'hematology', '10^9/L', 4.0, 10.0, 4.0, 10.0, 2, 1),
-('RBC', '红细胞计数', 'Red Blood Cell', 'hematology', '10^12/L', 4.5, 5.5, 4.0, 5.0, 2, 2),
-('HGB', '血红蛋白', 'Hemoglobin', 'hematology', 'g/L', 130, 175, 115, 150, 0, 3),
-('HCT', '红细胞压积', 'Hematocrit', 'hematology', '%', 40, 50, 35, 45, 1, 4),
-('PLT', '血小板计数', 'Platelet', 'hematology', '10^9/L', 100, 300, 100, 300, 0, 5),
-('MCV', '平均红细胞体积', 'Mean Corpuscular Volume', 'hematology', 'fL', 80, 100, 80, 100, 1, 6),
-('MCH', '平均红细胞血红蛋白', 'Mean Corpuscular Hemoglobin', 'hematology', 'pg', 27, 34, 27, 34, 1, 7),
-('MCHC', '平均红细胞血红蛋白浓度', 'Mean Corpuscular Hemoglobin Concentration', 'hematology', 'g/L', 320, 360, 320, 360, 0, 8),
-('NEUT%', '中性粒细胞百分比', 'Neutrophil %', 'hematology', '%', 50, 70, 50, 70, 1, 9),
-('LYMPH%', '淋巴细胞百分比', 'Lymphocyte %', 'hematology', '%', 20, 40, 20, 40, 1, 10),
+('WBC', 'catalog.items.WBC', 'hematology', '10^9/L', 4.0, 10.0, 4.0, 10.0, 2, 1),
+('RBC', 'catalog.items.RBC', 'hematology', '10^12/L', 4.5, 5.5, 4.0, 5.0, 2, 2),
+('HGB', 'catalog.items.HGB', 'hematology', 'g/L', 130, 175, 115, 150, 0, 3),
+('HCT', 'catalog.items.HCT', 'hematology', '%', 40, 50, 35, 45, 1, 4),
+('PLT', 'catalog.items.PLT', 'hematology', '10^9/L', 100, 300, 100, 300, 0, 5),
+('MCV', 'catalog.items.MCV', 'hematology', 'fL', 80, 100, 80, 100, 1, 6),
+('MCH', 'catalog.items.MCH', 'hematology', 'pg', 27, 34, 27, 34, 1, 7),
+('MCHC', 'catalog.items.MCHC', 'hematology', 'g/L', 320, 360, 320, 360, 0, 8),
+('NEUT%', 'catalog.items.NEUT%', 'hematology', '%', 50, 70, 50, 70, 1, 9),
+('LYMPH%', 'catalog.items.LYMPH%', 'hematology', '%', 20, 40, 20, 40, 1, 10),
 
 -- Chemistry
-('GLU', '葡萄糖', 'Glucose', 'chemistry', 'mmol/L', 3.9, 6.1, 3.9, 6.1, 2, 20),
-('BUN', '尿素氮', 'Blood Urea Nitrogen', 'chemistry', 'mmol/L', 2.9, 8.2, 2.9, 8.2, 2, 21),
-('CREA', '肌酐', 'Creatinine', 'chemistry', 'μmol/L', 44, 133, 44, 97, 0, 22),
-('UA', '尿酸', 'Uric Acid', 'chemistry', 'μmol/L', 208, 428, 155, 357, 0, 23),
-('ALT', '谷丙转氨酶', 'Alanine Aminotransferase', 'chemistry', 'U/L', 0, 40, 0, 40, 0, 24),
-('AST', '谷草转氨酶', 'Aspartate Aminotransferase', 'chemistry', 'U/L', 0, 40, 0, 40, 0, 25),
-('TBIL', '总胆红素', 'Total Bilirubin', 'chemistry', 'μmol/L', 3.4, 20.5, 3.4, 20.5, 1, 26),
-('TP', '总蛋白', 'Total Protein', 'chemistry', 'g/L', 60, 80, 60, 80, 0, 27),
-('ALB', '白蛋白', 'Albumin', 'chemistry', 'g/L', 35, 55, 35, 55, 0, 28),
+('GLU', 'catalog.items.GLU', 'chemistry', 'mmol/L', 3.9, 6.1, 3.9, 6.1, 2, 20),
+('BUN', 'catalog.items.BUN', 'chemistry', 'mmol/L', 2.9, 8.2, 2.9, 8.2, 2, 21),
+('CREA', 'catalog.items.CREA', 'chemistry', 'μmol/L', 44, 133, 44, 97, 0, 22),
+('UA', 'catalog.items.UA', 'chemistry', 'μmol/L', 208, 428, 155, 357, 0, 23),
+('ALT', 'catalog.items.ALT', 'chemistry', 'U/L', 0, 40, 0, 40, 0, 24),
+('AST', 'catalog.items.AST', 'chemistry', 'U/L', 0, 40, 0, 40, 0, 25),
+('TBIL', 'catalog.items.TBIL', 'chemistry', 'μmol/L', 3.4, 20.5, 3.4, 20.5, 1, 26),
+('TP', 'catalog.items.TP', 'chemistry', 'g/L', 60, 80, 60, 80, 0, 27),
+('ALB', 'catalog.items.ALB', 'chemistry', 'g/L', 35, 55, 35, 55, 0, 28),
 
 -- Lipid Panel
-('TC', '总胆固醇', 'Total Cholesterol', 'chemistry', 'mmol/L', 0, 5.2, 0, 5.2, 2, 30),
-('TG', '甘油三酯', 'Triglycerides', 'chemistry', 'mmol/L', 0, 1.7, 0, 1.7, 2, 31),
-('HDL', '高密度脂蛋白', 'HDL Cholesterol', 'chemistry', 'mmol/L', 1.0, 9.9, 1.3, 9.9, 2, 32),
-('LDL', '低密度脂蛋白', 'LDL Cholesterol', 'chemistry', 'mmol/L', 0, 3.4, 0, 3.4, 2, 33),
+('TC', 'catalog.items.TC', 'chemistry', 'mmol/L', 0, 5.2, 0, 5.2, 2, 30),
+('TG', 'catalog.items.TG', 'chemistry', 'mmol/L', 0, 1.7, 0, 1.7, 2, 31),
+('HDL', 'catalog.items.HDL', 'chemistry', 'mmol/L', 1.0, 9.9, 1.3, 9.9, 2, 32),
+('LDL', 'catalog.items.LDL', 'chemistry', 'mmol/L', 0, 3.4, 0, 3.4, 2, 33),
 
 -- Diabetes
-('HbA1c', '糖化血红蛋白', 'Hemoglobin A1c', 'chemistry', '%', 4.0, 6.0, 4.0, 6.0, 1, 40);
+('HbA1c', 'catalog.items.HbA1c', 'chemistry', '%', 4.0, 6.0, 4.0, 6.0, 1, 40);
+`;
+
+// Default test packages (common panels)
+// Default test packages (common panels)
+export const SEED_TEST_PACKAGES_SQL = `
+INSERT OR IGNORE INTO test_packages (code, name, description) VALUES
+('CBC', 'packages.CBC.name', 'packages.CBC.description'),
+('LFT', 'packages.LFT.name', 'packages.LFT.description'),
+('RFT', 'packages.RFT.name', 'packages.RFT.description'),
+('LIPID', 'packages.LIPID.name', 'packages.LIPID.description');
+
+-- CBC package items (WBC, RBC, HGB, HCT, PLT, MCV, MCH, MCHC)
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'CBC' AND t.code IN ('WBC', 'RBC', 'HGB', 'HCT', 'PLT', 'MCV', 'MCH', 'MCHC');
+
+-- LFT package items (ALT, AST, TBIL)
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'LFT' AND t.code IN ('ALT', 'AST', 'TBIL');
+
+-- RFT package items (BUN, CREA, UA)
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'RFT' AND t.code IN ('BUN', 'CREA', 'UA');
+
+-- LIPID package items (TC, TG, HDL, LDL)
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'LIPID' AND t.code IN ('TC', 'TG', 'HDL', 'LDL');
 `;
 
 // Default admin user (password: admin123)
 export const SEED_ADMIN_USER_SQL = `
 INSERT OR IGNORE INTO users (username, password_hash, full_name, role) VALUES
-('admin', '$2b$10$rOzJqQZQZQZQZQZQZQZQZ.placeholder_hash_replace_on_first_run', 'Administrator', 'admin');
+('admin', '$2a$10$HjvdlAz/cDDGM2T5SHKvKOxFi/zQBjH6N2hLBTrOUJwpby5WoVQeW', 'Administrator', 'admin');
 `;
 
 // Default settings
@@ -306,7 +341,7 @@ INSERT OR IGNORE INTO settings (key, value) VALUES
 ('lab_phone', ''),
 ('lab_email', ''),
 ('lab_logo', ''),
-('report_footer', '本报告仅供参考，具体诊断请咨询专业医生。'),
+('report_footer', ''),
 ('language', 'zh'),
 ('date_format', 'YYYY-MM-DD'),
 ('time_format', 'HH:mm:ss'),

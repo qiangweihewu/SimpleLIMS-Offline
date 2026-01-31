@@ -1,0 +1,55 @@
+{
+  "id": "urit-3000",
+  "name": "Urit-3000 Series",
+  "manufacturer": "Urit",
+  "model": "3000/3010/3020",
+  "category": "hematology",
+  "connection": "serial",
+  "protocol": "astm",
+  "serialConfig": {
+    "baudRate": 9600,
+    "dataBits": 8,
+    "stopBits": 1,
+    "parity": "none",
+    "flowControl": false
+  },
+  "testMapping": {
+    "WBC": "WBC",
+    "RBC": "RBC",
+    "HGB": "HGB",
+    "HCT": "HCT",
+    "MCV": "MCV",
+    "MCH": "MCH",
+    "MCHC": "MCHC",
+    "PLT": "PLT",
+    "RDW": "RDW_CV",
+    "PDW": "PDW",
+    "MPV": "MPV",
+    "PCT": "PCT",
+    "LYM%": "LYM_PCT",
+    "MID%": "MID_PCT",
+    "GRA%": "GRA_PCT",
+    "LYM#": "LYM_ABS",
+    "MID#": "MID_ABS",
+    "GRA#": "GRA_ABS"
+  },
+  "protocolOptions": {
+    "astm": {
+      "frameDelimiter": "\r",
+      "recordDelimiter": "\n",
+      "fieldDelimiter": "|",
+      "repeatDelimiter": "\\",
+      "escapeDelimiter": "&",
+      "sendAck": true
+    }
+  },
+  "dataOptions": {
+    "filterHistogram": true,
+    "trimWhitespace": true,
+    "autoMatchSample": true,
+    "resultTimeout": 300
+  },
+  "version": "1.0.0",
+  "description": "Urit-3000 系列三分类血细胞分析仪通用驱动",
+  "notes": "适用于 3000/3010/3020 等型号"
+}

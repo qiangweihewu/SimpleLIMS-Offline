@@ -5,7 +5,8 @@
 
 import { SerialPort } from 'serialport';
 import { EventEmitter } from 'events';
-import { CTRL, parseASTMMessage, verifyChecksum } from './astm-parser';
+import { CTRL, parseASTMMessage, verifyChecksum } from './astm-parser.js';
+import { VirtualPort } from './virtual-port.js';
 
 export interface SerialConfig {
   path: string;
@@ -20,15 +21,20 @@ export interface SerialConfig {
 
 export interface InstrumentConnection {
   id: number;
-  port: SerialPort;
+  port: SerialPort | VirtualPort;
   config: SerialConfig;
   buffer: Buffer;
+  messageBuffer?: string;
   state: 'idle' | 'receiving' | 'error';
   lastActivity: Date;
+  intentionalDisconnect: boolean;
 }
 
 export class SerialService extends EventEmitter {
   private connections: Map<string, InstrumentConnection> = new Map();
+  private reconnectTimers: Map<string, NodeJS.Timeout> = new Map();
+  // Keep track of virtual ports to allow simulation
+  private virtualPorts: Map<string, VirtualPort> = new Map();
 
   constructor() {
     super();
@@ -38,33 +44,64 @@ export class SerialService extends EventEmitter {
    * List available serial ports
    */
   async listPorts() {
-    return SerialPort.list();
+    const realPorts = await SerialPort.list();
+    // Append a virtual port for testing
+    return [
+      ...realPorts,
+      { path: 'VIRTUAL:BC-3000', manufacturer: 'Virtual', serialNumber: 'V001', pnpId: 'VIRT_01', locationId: undefined, productId: undefined, vendorId: undefined }
+    ];
   }
 
   /**
-   * Connect to an instrument
+   * Get reference to a virtual port for simulation control
    */
+  getVirtualPort(path: string): VirtualPort | undefined {
+    return this.virtualPorts.get(path);
+  }
+
   async connect(instrumentId: number, config: SerialConfig): Promise<boolean> {
     if (this.connections.has(config.path)) {
-      console.log(`Port ${config.path} already connected`);
-      return true;
+      const conn = this.connections.get(config.path);
+      // Check isOpen property safely (works on both real and virtual)
+      if (conn?.port.isOpen) {
+        console.log(`Port ${config.path} already connected`);
+        return true;
+      }
+    }
+
+    // Clear any pending reconnect
+    if (this.reconnectTimers.has(config.path)) {
+      clearTimeout(this.reconnectTimers.get(config.path)!);
+      this.reconnectTimers.delete(config.path);
     }
 
     try {
-      const port = new SerialPort({
-        path: config.path,
-        baudRate: config.baudRate,
-        dataBits: config.dataBits || 8,
-        stopBits: config.stopBits || 1,
-        parity: config.parity || 'none',
-        rtscts: config.rtscts || false,
-        xon: config.xon || false,
-        xoff: config.xoff || false,
-        autoOpen: false,
-      });
+      let port: SerialPort | VirtualPort;
+
+      if (config.path.startsWith('VIRTUAL:')) {
+        console.log(`Creating virtual port for ${config.path}`);
+        port = new VirtualPort({
+          path: config.path,
+          baudRate: config.baudRate
+        });
+        this.virtualPorts.set(config.path, port as VirtualPort);
+      } else {
+        port = new SerialPort({
+          path: config.path,
+          baudRate: config.baudRate,
+          dataBits: config.dataBits || 8,
+          stopBits: config.stopBits || 1,
+          parity: config.parity || 'none',
+          rtscts: config.rtscts || false,
+          xon: config.xon || false,
+          xoff: config.xoff || false,
+          autoOpen: false,
+        });
+      }
 
       return new Promise((resolve, reject) => {
-        port.open((err) => {
+        port.open((err: Error | null | undefined) => {
+          // Note: SerialPort types might say Error | null, we handle both
           if (err) {
             console.error(`Failed to open port ${config.path}:`, err);
             reject(err);
@@ -78,6 +115,7 @@ export class SerialService extends EventEmitter {
             buffer: Buffer.alloc(0),
             state: 'idle',
             lastActivity: new Date(),
+            intentionalDisconnect: false
           };
 
           this.connections.set(config.path, connection);
@@ -94,53 +132,85 @@ export class SerialService extends EventEmitter {
     }
   }
 
-  /**
-   * Disconnect from an instrument
-   */
   async disconnect(path: string): Promise<void> {
+    // Clear reconnect timer if any
+    if (this.reconnectTimers.has(path)) {
+      clearTimeout(this.reconnectTimers.get(path)!);
+      this.reconnectTimers.delete(path);
+    }
+
     const connection = this.connections.get(path);
     if (!connection) return;
 
+    connection.intentionalDisconnect = true;
+
     return new Promise((resolve) => {
-      connection.port.close((err) => {
-        if (err) console.error(`Error closing port ${path}:`, err);
+      if (connection.port.isOpen) {
+        connection.port.close((err) => {
+          if (err) console.error(`Error closing port ${path}:`, err);
+          this.connections.delete(path);
+          this.emit('disconnected', { instrumentId: connection.id, path });
+          resolve();
+        });
+      } else {
         this.connections.delete(path);
         this.emit('disconnected', { instrumentId: connection.id, path });
         resolve();
-      });
+      }
     });
   }
 
-  /**
-   * Disconnect all instruments
-   */
-  async disconnectAll(): Promise<void> {
-    const paths = Array.from(this.connections.keys());
-    await Promise.all(paths.map(path => this.disconnect(path)));
-  }
+  // ... (disconnectAll)
 
-  /**
-   * Setup port event listeners
-   */
   private setupPortListeners(connection: InstrumentConnection) {
     const { port, config } = connection;
 
-    port.on('data', (data: Buffer) => {
+    // Cast to any to avoid TS union type issues between SerialPort (Stream) and VirtualPort (EventEmitter)
+    const p = port as any;
+
+    p.on('data', (data: Buffer) => {
       connection.lastActivity = new Date();
       this.handleIncomingData(connection, data);
     });
 
-    port.on('error', (err) => {
+    p.on('error', (err: any) => {
       console.error(`Serial port error on ${config.path}:`, err);
       connection.state = 'error';
       this.emit('error', { instrumentId: connection.id, path: config.path, error: err });
     });
 
-    port.on('close', () => {
+    p.on('close', () => {
       console.log(`Port ${config.path} closed`);
       this.connections.delete(config.path);
       this.emit('disconnected', { instrumentId: connection.id, path: config.path });
+
+      if (!connection.intentionalDisconnect) {
+        console.log(`Unexpected disconnect on ${config.path}, retrying in 5s...`);
+        const timer = setTimeout(() => {
+          console.log(`Attempting reconnect to ${config.path}...`);
+          this.connect(connection.id, connection.config).catch(err => {
+            console.error(`Reconnect failed for ${config.path}:`, err);
+            // If failed, maybe schedule another retry or emit permanent failure
+            // Simple recursive retry via close handlers logic isn't here because connect() failing doesn't trigger 'close' event on the new port instance if open() fails.
+            // We should retry loop here if connect fails.
+            this.retryConnect(connection.id, connection.config);
+          });
+        }, 5000);
+        this.reconnectTimers.set(config.path, timer);
+      }
     });
+  }
+
+  private retryConnect(instrumentId: number, config: SerialConfig) {
+    // Check if we should stop trying (e.g. user updated config or stopped it mid-retry?)
+    // For now just try again in 10s
+    const timer = setTimeout(() => {
+      this.connect(instrumentId, config).catch(err => {
+        console.error(`Retry attempt failed for ${config.path}`);
+        this.retryConnect(instrumentId, config);
+      });
+    }, 10000);
+    this.reconnectTimers.set(config.path, timer);
   }
 
   /**
@@ -160,11 +230,12 @@ export class SerialService extends EventEmitter {
     if (data.includes(CTRL.EOT)) {
       // End of transmission
       console.log(`Received EOT from ${connection.config.path}`);
-      if (connection.buffer.length > 0) {
+      if (connection.messageBuffer && connection.messageBuffer.length > 0) {
         this.processCompleteMessage(connection);
       }
       connection.state = 'idle';
       connection.buffer = Buffer.alloc(0);
+      connection.messageBuffer = '';
       return;
     }
 
@@ -183,34 +254,68 @@ export class SerialService extends EventEmitter {
 
     while (buffer.length > 0) {
       const stxIdx = buffer.indexOf(CTRL.STX);
-      if (stxIdx === -1) break;
+      if (stxIdx === -1) {
+        // No start of text, discard garbage if we have some data but no STX? 
+        // Be careful not to discard partial STX if it's split (?) -> STX is 1 byte, so rare.
+        // But we might have noise before STX.
+        // For now, if no STX found, we keep the buffer as is, waiting for more data.
+        // UNLESS the buffer is huge?
+        break;
+      }
 
       const etxIdx = buffer.indexOf(CTRL.ETX, stxIdx);
       const etbIdx = buffer.indexOf(CTRL.ETB, stxIdx);
-      const endIdx = etxIdx !== -1 ? etxIdx : etbIdx;
+      // Find the first occurrence of either ETX or ETB
+      let endIdx = -1;
+      if (etxIdx !== -1 && etbIdx !== -1) {
+        endIdx = Math.min(etxIdx, etbIdx);
+      } else if (etxIdx !== -1) {
+        endIdx = etxIdx;
+      } else {
+        endIdx = etbIdx;
+      }
 
-      if (endIdx === -1) break;
+      if (endIdx === -1) break; // Wait for more data
 
       // Need at least 2 more bytes for checksum + CR LF
       if (buffer.length < endIdx + 4) break;
 
       const frame = buffer.slice(stxIdx, endIdx + 4);
-      
+
       // Verify checksum
       if (verifyChecksum(frame)) {
         this.sendACK(connection);
-        // Extract data between STX and ETX/ETB
-        const frameData = frame.slice(1, endIdx - stxIdx).toString('ascii');
-        this.emit('frame', { 
-          instrumentId: connection.id, 
-          path: connection.config.path, 
-          data: frameData 
+
+        // Extract data between STX and ETX/ETB (exclude frame number at start if strict, 
+        // but ASTM parser handles the whole line usually? 
+        // Actually, ASTM frame is <STX>F#<Data><ETX>CS<CR><LF>
+        // The data passed to parseASTMMessage usually expects lines of records.
+        // We should extract the content.
+
+        // Frame structure: STX (1) + Frame# (1) + Text (N) + ETX (1) + CS (2) + CRLF (2)
+        // We want 'Text'.
+        // Note: The Frame# loops 0-7. 
+
+        const frameData = frame.slice(stxIdx + 2, endIdx); // Skip STX and Frame#
+
+        if (!connection.messageBuffer) connection.messageBuffer = '';
+        connection.messageBuffer += frameData.toString('ascii');
+
+        this.emit('frame', {
+          instrumentId: connection.id,
+          path: connection.config.path,
+          data: frameData.toString('ascii')
         });
       } else {
         console.warn(`Checksum failed for frame from ${connection.config.path}`);
         this.sendNAK(connection);
+        // We do NOT discard the frame yet? Or do we?
+        // Instrument should retransmit. We should probably accept that we consumed this attempts.
+        // Standard says: sending NAK causes retransmission.
+        // We consume the buffer so we can receive the retransmission.
       }
 
+      // Advance buffer past this frame
       buffer = buffer.slice(endIdx + 4);
     }
 
@@ -221,7 +326,7 @@ export class SerialService extends EventEmitter {
    * Process complete ASTM message
    */
   private processCompleteMessage(connection: InstrumentConnection) {
-    const rawData = connection.buffer.toString('ascii');
+    const rawData = connection.messageBuffer || '';
     console.log(`Processing complete message from ${connection.config.path}`);
 
     try {
@@ -280,6 +385,9 @@ export class SerialService extends EventEmitter {
   /**
    * Get all connection statuses
    */
+  /**
+   * Get all connection statuses
+   */
   getAllStatuses(): Map<string, { instrumentId: number; connected: boolean; state: string; lastActivity: Date }> {
     const statuses = new Map();
     for (const [path, connection] of this.connections) {
@@ -291,6 +399,22 @@ export class SerialService extends EventEmitter {
       });
     }
     return statuses;
+  }
+
+  /**
+   * Disconnect all active ports and clear timers
+   */
+  async disconnectAll(): Promise<void> {
+    console.log('Disconnecting all serial ports...');
+    for (const timer of this.reconnectTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.reconnectTimers.clear();
+
+    const disconnectPromises = Array.from(this.connections.keys()).map(path => this.disconnect(path));
+    await Promise.all(disconnectPromises);
+    this.connections.clear();
+    this.virtualPorts.clear();
   }
 }
 

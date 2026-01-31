@@ -15,23 +15,46 @@
     "instruments": "Instruments",
     "catalog": "Test Catalog",
     "settings": "Settings",
+    "user_management": "User Management",
     "logout": "Logout"
   },
   "common": {
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
+    "select": "Select",
+    "save_config": "Save Configuration",
+    "close": "Close",
+    "logout": "Logout",
+    "quit": "Quit",
+    "restart": "Restart",
     "create": "Create",
     "search": "Search",
     "status": "Status",
     "actions": "Actions",
     "success": "Success",
     "error": "Error",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "not_selected": "Not Selected",
+    "no_data": "No data available",
+    "total": "Total",
+    "previous": "Previous",
+    "page_of": "Page {{page}} of {{total}}",
+    "required_fields": "Please fill in required fields",
+    "required_field": "Field is required",
+    "browse": "Browse",
+    "error_occurred": "An error occurred",
+    "saved_success": "Saved successfully",
+    "confirm_delete": "Are you sure you want to delete?",
+    "deleted_success": "Deleted successfully",
+    "add": "Add"
   },
   "dashboard": {
+    "title": "Dashboard",
     "welcome": "Welcome back",
     "overview": "Laboratory Overview",
     "today_samples": "Today's Samples",
@@ -65,18 +88,31 @@
   },
   "patients": {
     "title": "Patient Management",
-    "subtitle": "Manage patient information and history",
+    "subtitle": "Manage laboratory patient records",
     "add_patient": "Add Patient",
     "total_patients": "Total {{count}} patients",
     "no_data": "No patients found, please add one",
+    "id_management": "Identification",
+    "custom_patient_id": "Custom ID",
+    "custom_patient_id_placeholder": "Enter custom patient ID",
+    "auto_id_notice": "Patient ID will be automatically generated.",
+    "id_exists_error": "ID already exists",
     "form": {
-      "title": "New Patient",
+      "title": "Add Patient",
       "first_name": "First Name",
       "last_name": "Last Name",
       "gender": "Gender",
       "dob": "Date of Birth",
       "phone": "Phone",
-      "address": "Address"
+      "address": "Address",
+      "notes": "Notes",
+      "personal_info": "Personal Info",
+      "contact_info": "Contact Info",
+      "placeholder": {
+        "last_name": "Ex: Smith",
+        "first_name": "Ex: John",
+        "address": "Full residential address"
+      }
     },
     "table": {
       "id": "Patient ID",
@@ -93,6 +129,14 @@
     },
     "actions": {
       "order": "Order"
+    },
+    "detail": {
+      "basic_info": "Basic Information",
+      "history": "Test History",
+      "view_report": "View Report",
+      "not_found": "Patient Not Found",
+      "notes": "Notes",
+      "years_old": "years"
     }
   },
   "samples": {
@@ -114,12 +158,20 @@
       "tests": "Tests",
       "priority": "Priority",
       "status": "Status",
-      "collected_at": "Collected At"
+      "collected_at": "Collected At",
+      "type": "Sample Type"
     },
     "priority": {
       "normal": "Normal",
       "urgent": "Urgent",
       "stat": "STAT"
+    },
+    "type": {
+      "blood": "Whole Blood",
+      "serum": "Serum",
+      "plasma": "Plasma",
+      "urine": "Urine",
+      "other": "Other"
     }
   },
   "worklist": {
@@ -129,15 +181,16 @@
     "urgent_samples": "Urgent Samples",
     "avg_wait": "Avg Wait",
     "minutes": "mins",
-    "start": "Start"
+    "start": "Start",
+    "started": "Started"
   },
   "orders": {
     "title": "New Order",
     "subtitle": "Create new sample and orders",
     "steps": {
-      "patient": "1. Select Patient",
-      "tests": "2. Select Tests",
-      "confirm": "3. Confirm Order"
+      "select_patient": "Select Patient",
+      "select_tests": "Select Tests",
+      "confirm_order": "Confirm Order"
     },
     "search_patient": "Search patient...",
     "no_patient_found": "No patient found",
@@ -150,12 +203,17 @@
       "count": "{{count}} items"
     },
     "create_sample": "Create Sample",
+    "quick_packages": "Quick Packages",
+    "package_includes": "Includes: {{tests}}",
     "messages": {
       "select_patient": "Please select a patient",
       "select_tests": "Please select tests",
       "success": "Sample {{id}} created successfully",
       "error": "Creation failed, please retry"
-    }
+    },
+    "custom_sample_id": "Use custom sample ID",
+    "custom_sample_id_placeholder": "e.g. 23102401",
+    "id_exists_error": "ID already exists"
   },
   "results": {
     "title": "Result Entry",
@@ -190,8 +248,12 @@
     },
     "messages": {
       "verified_success": "Result verified",
-      "verify_failed": "Verification failed"
+      "verify_failed": "Verification failed",
+      "edit_success": "Result updated successfully",
+      "edit_failed": "Failed to update result"
     },
+    "edit_title": "Edit Result",
+    "edit_value": "Result Value",
     "no_data": "No result data"
   },
   "instruments": {
@@ -204,15 +266,37 @@
       "total": "Total Instruments"
     },
     "no_instruments": "No instruments configured",
+    "monitoring_started": "Instrument monitoring started",
+    "monitoring_stopped": "Instrument monitoring stopped",
+    "messages_received": "Messages",
     "status": {
       "online": "Online",
-      "offline": "Offline"
+      "offline": "Offline",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "error": "Connection Error",
+      "reconnecting": "Reconnecting"
     },
+    "edit_instrument": "Edit Instrument",
     "fields": {
+      "name": "Instrument Name",
+      "model": "Model",
+      "manufacturer": "Manufacturer",
+      "manufacturer_model": "Manufacturer / Model",
       "connection_type": "Connection Type",
+      "connection": "Connection",
       "protocol": "Protocol",
+      "protocol_layer": "Protocol Layer",
       "port": "Port",
+      "host_ip": "Host / IP",
+      "mode": "Mode",
       "baud_rate": "Baud Rate",
+      "data_bits": "Data Bits",
+      "parity": "Parity",
+      "stop_bits": "Stop Bits",
+      "watch_folder": "Watch Folder",
+      "file_pattern": "File Pattern",
+      "browse": "Browse",
       "last_activity": "Last Activity"
     },
     "connection_types": {
@@ -223,17 +307,110 @@
     "protocols": {
       "astm": "ASTM E1394",
       "hl7": "HL7 v2.x",
-      "csv": "CSV File"
+      "csv": "CSV File",
+      "custom": "Custom Driver"
     },
     "actions": {
       "connect": "Connect",
       "disconnect": "Disconnect",
       "test": "Test",
       "configure": "Configure"
+    },
+    "csv_config": "CSV Column Mapping",
+    "csv_delimiter": "Delimiter",
+    "csv_delimiters": {
+      "comma": "Comma",
+      "tab": "Tab",
+      "semicolon": "Semicolon",
+      "pipe": "Pipe"
+    },
+    "csv_has_header": "File has header row",
+    "csv_sample_id_col": "Sample ID Column",
+    "csv_test_code_col": "Test Code Column",
+    "csv_value_col": "Value Column",
+    "csv_unit_col": "Unit Column",
+    "messages": {
+      "connected": "Connected to {{name}}",
+      "connect_failed": "Connection failed",
+      "connect_error": "Connection error",
+      "disconnected": "Disconnected from {{name}}",
+      "disconnect_error": "Disconnection error",
+      "add_success": "Instrument added",
+      "add_failed": "Failed to add instrument",
+      "update_success": "Instrument configuration updated",
+      "update_failed": "Failed to update instrument configuration",
+      "delete_success": "Instrument deleted",
+      "delete_failed": "Failed to delete instrument",
+      "error_unsupported_file_mode": "File monitoring mode not supported",
+      "error_no_serial_port": "Serial port path not configured",
+      "error_no_tcp_port": "TCP port not configured"
+    },
+    "wizard": {
+      "title": "Add Instrument Wizard",
+      "step_of": "Step {{current}} of {{total}}",
+      "switch_manual": "Switch to Manual Mode",
+      "switch_wizard": "Switch to Wizard Mode",
+      "generic": "Generic / Custom Driver",
+      "select_driver": "Please select an instrument driver",
+      "custom_driver": "Custom Configuration",
+      "custom_driver_desc": "Manually configure connection parameters",
+      "test_prompt": "Click the button below to test connection status",
+      "testing_connection": "Testing connection...",
+      "connection_success": "Connection test successful!",
+      "connection_failed": "Connection test failed, please check configuration",
+      "mapping_desc": "Default test code mappings for this instrument",
+      "instrument_code": "Instrument Code",
+      "lims_code": "LIMS Code",
+      "no_mapping": "No default mapping defined for this driver",
+      "summary": "Configuration Summary",
+      "driver_label": "Driver",
+      "connection_failed_msg": "Could not connect to the port",
+      "test_connection": "Test Connection"
+    },
+    "form": {
+      "connection_type": "Connection Type",
+      "protocol": "Protocol Type",
+      "port": "Select Port",
+      "select_port": "Select a port...",
+      "baud_rate": "Baud Rate",
+      "parity": "Parity",
+      "host": "Host IP",
+      "port_number": "Port Number",
+      "hl7_mode": "HL7 Connection Mode",
+      "watch_folder": "Watch Folder",
+      "file_pattern": "File Pattern",
+      "name": "Instrument Name",
+      "name_placeholder": "e.g., Mindray BC-3000",
+      "client_mode": "Client Mode",
+      "client_mode_desc": "Connect to external LIS/instrument",
+      "server_mode": "Server Mode",
+      "server_mode_desc": "Listen for instrument connections"
+    },
+    "connections": {
+      "serial": "Serial Port",
+      "tcp": "Network (TCP/IP)",
+      "file": "File Watcher"
+    },
+    "parity": {
+      "none": "None",
+      "even": "Even",
+      "odd": "Odd"
+    },
+    "debugger": {
+      "title": "Instrument Debugger",
+      "port": "Physical Port",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "simulate": "Simulate Data",
+      "clear": "Clear Logs",
+      "ready": "Ready, waiting for data...",
+      "status_changed": "Status changed: {{status}}",
+      "connected": "Connected",
+      "disconnected": "Disconnected"
     }
   },
   "unmatched": {
-    "title": "Unmatched Data",
+    "title": "Unmatched DataPool",
     "subtitle": "Process unmapped instrument results",
     "alert_title": "{{count}} unmapped results waiting",
     "alert_desc": "These results could not be automatically matched. Please claim or discard.",
@@ -284,6 +461,14 @@
     "general": "General",
     "language": "Language",
     "select_language": "Select Language",
+    "languages": {
+      "zh": "Chinese (Simplified)",
+      "en": "English",
+      "es": "Spanish",
+      "fr": "French",
+      "pt": "Portuguese",
+      "ar": "Arabic"
+    },
     "lab_info": "Laboratory Information",
     "backup": "Backup & Restore",
     "subtitle": "Configure laboratory information and system parameters",
@@ -293,6 +478,8 @@
     "security": "Security Settings",
     "security_desc": "Manage user accounts and access permissions",
     "license": "License",
+    "system_actions": "System Actions",
+    "system_actions_desc": "Control application state",
     "license_desc": "Software authorization information",
     "form": {
       "lab_name": "Laboratory Name",
@@ -303,10 +490,20 @@
     "backup_section": {
       "location": "Database Location",
       "note": "Please backup to external storage regularly",
-      "backup_btn": "Backup Database",
-      "restore_btn": "Restore Database"
+      "backup_btn": "Backup Now",
+      "restore_btn": "Restore Data",
+      "manual_backup": "Manual Backup",
+      "auto_backup": "Automatic Backup",
+      "enable_auto": "Enable Automatic Backup",
+      "interval": "Backup Interval",
+      "location_label": "Backup Location",
+      "select_folder_placeholder": "Select a folder...",
+      "use_default_prompt": "Backup path is not set. Do you want to use the default path?\n\nDefault: {{path}}",
+      "manual_select_hint": "Click Cancel to select a custom folder manually."
     },
     "license_section": {
+      "activation_key": "Activation Key",
+      "activate_btn": "Activate Now",
       "status": "License Status",
       "activated": "Activated",
       "trial": "Trial Version",
@@ -314,7 +511,14 @@
       "inactive": "Inactive",
       "machine_id": "Machine ID",
       "activated_at": "Activated Date",
-      "version": "Version"
+      "version": "Version",
+      "days_remaining": "{{count}} days remaining",
+      "expired": "EXPIRED",
+      "trial_expired": "Trial Expired",
+      "active_trial": "Active Trial",
+      "copy": "Copy",
+      "copied": "Machine ID copied",
+      "placeholder": "Paste your license key here..."
     },
     "users": {
       "admin": "Administrator",
@@ -323,12 +527,18 @@
       "add_user": "Add User"
     },
     "messages": {
-        "backup_location": "Please select backup location...",
-        "backup_success": "Database backup successful",
-        "backup_failed": "Backup failed",
-        "restore_confirm": "Restore database? Current data will be replaced.",
-        "restore_success": "Database restore successful, please restart app",
-        "restore_failed": "Restore failed"
+      "backup_location": "Please select backup location...",
+      "backup_success": "Database backup successful",
+      "backup_failed": "Backup failed",
+      "restore_confirm": "Are you sure you want to restore? Current data will be overwritten.",
+      "restore_success": "Database restored successfully. Please restart the app.",
+      "restore_failed": "Restore failed",
+      "intervals": {
+        "hourly": "Hourly (Testing)",
+        "daily": "Daily (Midnight)",
+        "weekly": "Weekly (Sunday)",
+        "monthly": "Monthly (1st Day)"
+      }
     }
   },
   "reports": {
@@ -351,6 +561,38 @@
     },
     "no_data": "No completed reports found"
   },
+  "report": {
+    "preview_title": "Report Preview",
+    "print": "Print",
+    "export_pdf": "Export PDF",
+    "back": "Back",
+    "loading": "Loading report...",
+    "not_found": "Report not found",
+    "lab_report_title": "Laboratory Report",
+    "printed_at": "Printed At",
+    "signature": "Authorized Signature",
+    "report_footer": "Report Footer",
+    "default_footer": "This report is for reference only. Please consult a professional doctor for specific diagnosis."
+  },
+  "critical": {
+    "alert_title": "Critical Value Alert",
+    "message": "Critical value detected. Please notify the physician immediately.",
+    "acknowledge": "I acknowledge this critical value",
+    "confirm": "Confirm",
+    "patient": "Patient",
+    "test": "Test",
+    "value": "Value",
+    "ref_range": "Reference Range"
+  },
+  "delta": {
+    "alert_title": "Delta Check Warning",
+    "message": "Significant change detected. Please verify sample or patient information.",
+    "current_value": "Current Value",
+    "previous_value": "Previous Value",
+    "previous_date": "Test Date",
+    "change_percent": "Change Magnitude",
+    "acknowledge": "I acknowledge this warning"
+  },
   "catalog": {
     "title": "Test Catalog",
     "subtitle": "Manage test catalog and reference ranges",
@@ -360,6 +602,7 @@
     "table": {
       "code": "Code",
       "name": "Name",
+      "name_en": "Name (EN)",
       "category": "Category",
       "unit": "Unit",
       "ref_male": "Ref Range (Male)",
@@ -373,15 +616,42 @@
       "immuno": "Immunology",
       "other": "Other"
     },
+    "items": {
+      "WBC": "White Blood Cell",
+      "RBC": "Red Blood Cell",
+      "HGB": "Hemoglobin",
+      "HCT": "Hematocrit",
+      "PLT": "Platelet",
+      "MCV": "Mean Corpuscular Volume",
+      "MCH": "Mean Corpuscular Hemoglobin",
+      "MCHC": "Mean Corpuscular Hemoglobin Concentration",
+      "NEUT%": "Neutrophil %",
+      "LYMPH%": "Lymphocyte %",
+      "GLU": "Glucose",
+      "BUN": "Blood Urea Nitrogen",
+      "CREA": "Creatinine",
+      "UA": "Uric Acid",
+      "ALT": "Alanine Aminotransferase",
+      "AST": "Aspartate Aminotransferase",
+      "TBIL": "Total Bilirubin",
+      "TP": "Total Protein",
+      "ALB": "Albumin",
+      "TC": "Total Cholesterol",
+      "TG": "Triglycerides",
+      "HDL": "HDL Cholesterol",
+      "LDL": "LDL Cholesterol",
+      "HbA1c": "Hemoglobin A1c"
+    },
     "status": {
       "active": "Active",
       "inactive": "Inactive"
     },
     "form": {
-      "title_add": "Add Test Item",
-      "title_edit": "Edit Test Item",
+      "title_add": "Add New Item",
+      "title_edit": "Edit Item",
       "code": "Test Code",
-      "name": "Test Name",
+      "name": "Display Name",
+      "name_en": "English Name",
       "category": "Category",
       "unit": "Unit",
       "ref_range_male": "Reference Range (Male)",
@@ -393,7 +663,107 @@
     },
     "messages": {
       "create_success": "Created successfully",
-      "update_success": "Updated successfully"
+      "create_failed": "Creation failed",
+      "update_success": "Updated successfully",
+      "update_failed": "Update failed",
+      "status_update_failed": "Failed to update status"
     }
+  },
+  "mappings": {
+    "title": "Test Mappings",
+    "instrument_code": "Instrument Test Code",
+    "lims_panel": "LIMS Test Item",
+    "factor": "Factor",
+    "code_exists": "Code already exists",
+    "select_panel": "Select Panel",
+    "no_mappings": "No mappings configured",
+    "instrument_code_placeholder": "e.g. WBC, 1, GLU"
+  },
+  "packages": {
+    "CBC": {
+      "name": "CBC",
+      "description": "Complete Blood Count"
+    },
+    "LFT": {
+      "name": "Liver Function Test",
+      "description": "ALT, AST, TBIL"
+    },
+    "RFT": {
+      "name": "Renal Function Test",
+      "description": "BUN, CREA, UA"
+    },
+    "LIPID": {
+      "name": "Lipid Panel",
+      "description": "Total Cholesterol, Triglycerides, HDL, LDL"
+    }
+  },
+  "admin": {
+    "user_management": "User Management",
+    "user_management_subtitle": "Manage system users and their permissions",
+    "users": {
+      "username": "Username",
+      "full_name": "Full Name",
+      "role": "Role",
+      "actions": "Actions",
+      "you": "You",
+      "disabled": "Disabled"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "technician": "Lab Technician",
+      "viewer": "Viewer"
+    },
+    "add_user_btn": "Add User",
+    "actions": {
+      "title": "Actions",
+      "add_user": "Add User",
+      "change_password": "Change Password",
+      "edit": "Edit",
+      "delete": "Delete",
+      "enable": "Enable",
+      "disable": "Disable"
+    },
+    "dialog": {
+      "create_title": "Create User",
+      "edit_title": "Edit User"
+    },
+    "form": {
+      "username": "Username",
+      "full_name": "Full Name",
+      "role": "Role",
+      "password": "Password",
+      "new_password": "New Password (leave blank to keep current)"
+    },
+    "messages": {
+      "fill_required": "Please fill in required fields",
+      "password_required": "Password is required for new users",
+      "update_success": "User updated successfully",
+      "update_failed": "Update failed",
+      "create_success": "User created successfully",
+      "create_failed": "Creation failed",
+      "status_disabled": "User disabled",
+      "status_enabled": "User enabled",
+      "delete_confirm": "Are you sure you want to delete this user?",
+      "delete_success": "User deleted successfully",
+      "delete_failed": "Failed to delete user",
+      "toggle_failed": "Failed to change status"
+    }
+  },
+  "wizard": {
+    "title": "Instrument Setup Wizard",
+    "select_driver": "Please select an instrument driver",
+    "custom_driver": "Custom Configuration",
+    "custom_driver_desc": "Manually configure instrument connection settings",
+    "test_prompt": "Click the button to test instrument connection",
+    "test_connection": "Test Connection",
+    "testing_connection": "Testing connection...",
+    "connection_success": "Connection successful!",
+    "connection_failed": "Connection failed",
+    "mapping_desc": "Below is the mapping from instrument test codes to LIMS codes",
+    "instrument_code": "Instrument Code",
+    "lims_code": "LIMS Code",
+    "no_mapping": "No preset mapping for this driver. Configure manually after saving.",
+    "summary": "Configuration Summary",
+    "driver_label": "Driver"
   }
 }

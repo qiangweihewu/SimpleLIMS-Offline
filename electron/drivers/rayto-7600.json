@@ -1,0 +1,62 @@
+{
+  "id": "rayto-7600",
+  "name": "Rayto RT-7600 Series",
+  "manufacturer": "Rayto",
+  "model": "RT-7600",
+  "category": "chemistry",
+  "connection": "serial",
+  "protocol": "astm",
+  "serialConfig": {
+    "baudRate": 9600,
+    "dataBits": 8,
+    "stopBits": 1,
+    "parity": "none",
+    "flowControl": false
+  },
+  "testMapping": {
+    "GLU": "GLU",
+    "BUN": "BUN",
+    "CREA": "CREA",
+    "UA": "UA",
+    "TC": "CHOL",
+    "TG": "TRIG",
+    "HDL": "HDL",
+    "LDL": "LDL",
+    "ALT": "ALT",
+    "AST": "AST",
+    "ALP": "ALP",
+    "GGT": "GGT",
+    "TP": "TP",
+    "ALB": "ALB",
+    "TBIL": "TBIL",
+    "DBIL": "DBIL",
+    "Ca": "CA",
+    "P": "PHOS",
+    "Mg": "MG",
+    "K": "K",
+    "Na": "NA",
+    "Cl": "CL",
+    "CK": "CK",
+    "LDH": "LDH",
+    "AMY": "AMY"
+  },
+  "protocolOptions": {
+    "astm": {
+      "frameDelimiter": "\r",
+      "recordDelimiter": "\n",
+      "fieldDelimiter": "|",
+      "repeatDelimiter": "\\",
+      "escapeDelimiter": "&",
+      "sendAck": true
+    }
+  },
+  "dataOptions": {
+    "filterHistogram": false,
+    "trimWhitespace": true,
+    "autoMatchSample": true,
+    "resultTimeout": 600
+  },
+  "version": "1.0.0",
+  "description": "Rayto RT-7600 系列全自动生化分析仪通用驱动",
+  "notes": "支持常规生化项目，适用于基层实验室"
+}

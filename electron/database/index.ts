@@ -1,15 +1,44 @@
-import Database from 'better-sqlite3';
+import Database from 'better-sqlite3-multiple-ciphers';
 import path from 'path';
-import { app } from 'electron';
-import { 
-  CREATE_TABLES_SQL, 
-  SEED_TEST_PANELS_SQL, 
+import { app, safeStorage } from 'electron';
+import fs from 'fs';
+import crypto from 'crypto';
+import {
+  CREATE_TABLES_SQL,
+  SEED_TEST_PANELS_SQL,
+  SEED_TEST_PACKAGES_SQL,
   SEED_ADMIN_USER_SQL,
   SEED_SETTINGS_SQL,
-  SCHEMA_VERSION 
-} from './schema';
+  SCHEMA_VERSION
+} from './schema.js';
 
 let db: Database.Database | null = null;
+const KEY_FILE_NAME = 'db-key.enc';
+
+function getEncryptionKey(): string {
+  const userDataPath = app.getPath('userData');
+  const keyPath = path.join(userDataPath, KEY_FILE_NAME);
+
+  if (fs.existsSync(keyPath)) {
+    // Read and decrypt existing key
+    const encryptedKey = fs.readFileSync(keyPath);
+    if (safeStorage.isEncryptionAvailable()) {
+      return safeStorage.decryptString(encryptedKey);
+    } else {
+      throw new Error('Encryption not available');
+    }
+  } else {
+    // Generate new key
+    const newKey = crypto.randomBytes(32).toString('hex');
+    if (safeStorage.isEncryptionAvailable()) {
+      const encryptedKey = safeStorage.encryptString(newKey);
+      fs.writeFileSync(keyPath, encryptedKey);
+      return newKey;
+    }
+    // Fallback for dev/testing without safeStorage access (e.g. Linux sometimes)
+    return 'development-default-key-do-not-use-in-prod';
+  }
+}
 
 export function getDbPath(): string {
   const userDataPath = app.getPath('userData');
@@ -22,10 +51,17 @@ export function initDatabase(): Database.Database {
   const dbPath = getDbPath();
   console.log('Initializing database at:', dbPath);
 
+  // Get encryption key
+  const key = getEncryptionKey();
+
   db = new Database(dbPath);
-  
+
+  // Enable encryption
+  db.pragma(`key = '${key}'`);
+
   // Enable WAL mode for better concurrency
   db.pragma('journal_mode = WAL');
+  db.pragma('synchronous = NORMAL'); // Balance between safety and performance
   db.pragma('foreign_keys = ON');
 
   // Check if database needs initialization
@@ -37,6 +73,7 @@ export function initDatabase(): Database.Database {
     console.log('Creating database schema...');
     db.exec(CREATE_TABLES_SQL);
     db.exec(SEED_TEST_PANELS_SQL);
+    db.exec(SEED_TEST_PACKAGES_SQL);
     db.exec(SEED_ADMIN_USER_SQL);
     db.exec(SEED_SETTINGS_SQL);
     console.log('Database initialized successfully');
@@ -45,7 +82,50 @@ export function initDatabase(): Database.Database {
     const version = db.prepare('SELECT version FROM schema_version ORDER BY version DESC LIMIT 1').get() as { version: number } | undefined;
     if (version && version.version < SCHEMA_VERSION) {
       console.log(`Migrating database from v${version.version} to v${SCHEMA_VERSION}`);
-      // Add migration logic here when needed
+
+      // Migration to v2
+      if (version.version < 2) {
+        try {
+          // Use transaction for migration safety
+          db.transaction(() => {
+            // Add name_en to test_panels
+            try {
+              db!.exec('ALTER TABLE test_panels ADD COLUMN name_en TEXT');
+              console.log('Added name_en to test_panels');
+            } catch (e: any) {
+              if (!e.message.includes('duplicate column')) throw e;
+            }
+
+            // Add columns to test_packages
+            try {
+              db!.exec('ALTER TABLE test_packages ADD COLUMN name_en TEXT');
+              db!.exec('ALTER TABLE test_packages ADD COLUMN description_en TEXT');
+              console.log('Added columns to test_packages');
+            } catch (e: any) {
+              if (!e.message.includes('duplicate column')) throw e;
+            }
+          })();
+        } catch (error) {
+          console.error('Migration to v2 failed:', error);
+          throw error; // Stop initialization if migration fails
+        }
+      }
+
+      // Migration to v3
+      if (version.version < 3) {
+        try {
+          db.transaction(() => {
+            db!.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_results_order_id ON results(order_id)');
+            console.log('Added unique index to results(order_id)');
+          })();
+        } catch (error) {
+          console.error('Migration to v3 failed:', error);
+        }
+      }
+
+      // Update version
+      db.prepare("INSERT OR REPLACE INTO schema_version (version, applied_at) VALUES (?, datetime('now'))").run(SCHEMA_VERSION);
+      console.log(`Database migrated to v${SCHEMA_VERSION} successfully`);
     }
   }
 
@@ -61,8 +141,27 @@ export function getDatabase(): Database.Database {
 
 export function closeDatabase(): void {
   if (db) {
+    try {
+      console.log('Checkpointing WAL before close...');
+      db.pragma('wal_checkpoint(TRUNCATE)');
+    } catch (e) {
+      console.error('Checkpoint failed:', e);
+    }
     db.close();
     db = null;
+  }
+}
+
+export function isDatabaseInitialized(): boolean {
+  return db !== null;
+}
+
+export function checkpointDatabase(): void {
+  const database = getDatabase();
+  try {
+    database.pragma('wal_checkpoint(PASSIVE)');
+  } catch (err) {
+    console.error('Manual checkpoint failed:', err);
   }
 }
 

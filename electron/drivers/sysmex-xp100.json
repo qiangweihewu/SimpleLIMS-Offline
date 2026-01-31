@@ -1,0 +1,51 @@
+{
+  "id": "sysmex-xp100",
+  "name": "Sysmex XP-100",
+  "manufacturer": "Sysmex",
+  "model": "XP-100",
+  "category": "hematology",
+  "connection": "serial",
+  "protocol": "astm",
+  "serialConfig": {
+    "baudRate": 9600,
+    "dataBits": 8,
+    "stopBits": 1,
+    "parity": "none",
+    "flowControl": false
+  },
+  "testMapping": {
+    "WBC": "WBC",
+    "RBC": "RBC",
+    "HGB": "HGB",
+    "HCT": "HCT",
+    "MCV": "MCV",
+    "MCH": "MCH",
+    "MCHC": "MCHC",
+    "PLT": "PLT",
+    "LYM%": "LYM_PCT",
+    "MID%": "MID_PCT",
+    "GRA%": "GRA_PCT",
+    "LYM#": "LYM_ABS",
+    "MID#": "MID_ABS",
+    "GRA#": "GRA_ABS"
+  },
+  "protocolOptions": {
+    "astm": {
+      "frameDelimiter": "\r",
+      "recordDelimiter": "\n",
+      "fieldDelimiter": "|",
+      "repeatDelimiter": "\\",
+      "escapeDelimiter": "&",
+      "sendAck": true
+    }
+  },
+  "dataOptions": {
+    "filterHistogram": true,
+    "trimWhitespace": true,
+    "autoMatchSample": true,
+    "resultTimeout": 300
+  },
+  "version": "1.0.0",
+  "description": "Sysmex XP-100 三分类血细胞分析仪驱动",
+  "notes": "标准 ASTM 协议，RS232 通讯"
+}

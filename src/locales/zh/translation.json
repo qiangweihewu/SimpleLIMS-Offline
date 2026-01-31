@@ -3,72 +3,100 @@
     "name": "SimpleLIMS 离线版",
     "description": "实验室信息管理系统"
   },
-  "nav": {
-    "dashboard": "工作台",
-    "patients": "患者管理",
-    "samples": "样本管理",
-    "orders": "新建医嘱",
-    "worklist": "工作列表",
-    "results": "结果审核",
-    "reports": "报告中心",
-    "unmatched": "未匹配数据",
-    "instruments": "仪器管理",
-    "catalog": "检验项目",
-    "settings": "系统设置",
-    "logout": "退出登录"
-  },
   "common": {
     "loading": "加载中...",
     "save": "保存",
     "cancel": "取消",
-    "delete": "删除",
-    "edit": "编辑",
+    "select": "选择",
+    "save_config": "保存配置",
+    "close": "关闭",
+    "logout": "退出登录",
+    "quit": "退出软件",
+    "restart": "重启软件",
     "create": "新建",
+    "add": "添加",
     "search": "搜索",
     "status": "状态",
     "actions": "操作",
     "success": "成功",
     "error": "错误",
-    "confirm": "确认"
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "back": "返回",
+    "next": "下一步",
+    "not_selected": "未选择",
+    "no_data": "暂无数据",
+    "total": "总计",
+    "previous": "上一页",
+    "page_of": "第 {{page}} 页 / 共 {{total}} 页",
+    "required_fields": "请填写必填项",
+    "required_field": "此项必填",
+    "browse": "浏览",
+    "error_occurred": "发生错误",
+    "saved_success": "保存成功",
+    "deleted_success": "删除成功",
+    "confirm_delete": "确定要删除吗？"
+  },
+  "nav": {
+    "dashboard": "仪表盘",
+    "patients": "患者管理",
+    "samples": "样本管理",
+    "orders": "新订单",
+    "worklist": "工作清单",
+    "results": "结果录入",
+    "catalog": "检验项目",
+    "instruments": "仪器管理",
+    "unmatched": "异常数据",
+    "reports": "报告中心",
+    "settings": "系统设置",
+    "user_management": "用户管理",
+    "logout": "退出登录"
   },
   "dashboard": {
+    "title": "仪表盘",
     "welcome": "欢迎回来",
-    "overview": "实验室概览",
+    "overview": "概览",
     "today_samples": "今日样本",
-    "pending": "待处理",
+    "pending": "等待检测",
     "completed": "已完成",
     "abnormal": "异常结果",
     "recent_samples": "最近样本",
+    "no_recent_samples": "暂无最近样本",
+    "total_samples": "样本总数",
     "quick_actions": "快捷操作",
     "register_patient": "登记患者",
     "receive_sample": "接收样本",
-    "print_barcode": "打印条码",
-    "no_recent_samples": "暂无最近样本",
-    "total_samples": "总样本数",
     "avg_tat": "平均 TAT",
     "stats_wip": "统计功能开发中",
-    "instrument_status": "仪器状态",
-    "no_instruments": "暂无仪器连接",
-    "configure_instruments": "请在仪器管理中配置",
     "hours": "小时",
+    "instrument_status": "仪器状态",
+    "no_instruments": "未连接仪器",
+    "configure_instruments": "前往仪器管理页面配置",
     "stats": {
-      "week_stats": "本周统计",
-      "avg_tat": "平均 TAT",
-      "wip": "统计功能开发中"
+      "week_stats": "周统计数据",
+      "wip": "统计功能开发中",
+      "avg_tat": "平均周转时间"
     },
+    "print_barcode": "打印条码",
     "status": {
-      "completed": "已完成",
+      "registered": "已登记",
       "in_progress": "检测中",
-      "pending": "待检",
-      "registered": "已登记"
+      "pending": "等待中",
+      "completed": "已完成"
     }
   },
   "patients": {
     "title": "患者管理",
-    "subtitle": "管理患者信息和历史记录",
-    "add_patient": "新增患者",
-    "total_patients": "共 {{count}} 位患者",
+    "subtitle": "管理实验室患者档案",
+    "add_patient": "添加患者",
+    "total_patients": "总计 {{count}} 位患者",
     "no_data": "暂无患者数据，请先添加患者",
+    "id_management": "标识信息",
+    "custom_patient_id": "手动输入 ID",
+    "custom_patient_id_placeholder": "输入自定义患者 ID",
+    "auto_id_notice": "患者 ID 将自动生成。",
+    "id_exists_error": "该 ID 已存在",
     "form": {
       "title": "新增患者",
       "first_name": "名字",
@@ -76,7 +104,15 @@
       "gender": "性别",
       "dob": "出生日期",
       "phone": "联系电话",
-      "address": "地址"
+      "address": "家庭地址",
+      "notes": "备注",
+      "personal_info": "基本信息",
+      "contact_info": "联系信息",
+      "placeholder": {
+        "last_name": "例如: 张",
+        "first_name": "例如: 三",
+        "address": "详细居住地址"
+      }
     },
     "table": {
       "id": "患者 ID",
@@ -93,6 +129,14 @@
     },
     "actions": {
       "order": "开单"
+    },
+    "detail": {
+      "basic_info": "基本信息",
+      "history": "检验历史",
+      "view_report": "查看报告",
+      "not_found": "患者不存在",
+      "notes": "备注",
+      "years_old": "岁"
     }
   },
   "samples": {
@@ -114,12 +158,20 @@
       "tests": "检验项目",
       "priority": "优先级",
       "status": "状态",
-      "collected_at": "采集时间"
+      "collected_at": "采集时间",
+      "type": "样本类型"
     },
     "priority": {
       "normal": "普通",
       "urgent": "加急",
       "stat": "急诊"
+    },
+    "type": {
+      "blood": "全血",
+      "serum": "血清",
+      "plasma": "血浆",
+      "urine": "尿液",
+      "other": "其他"
     }
   },
   "worklist": {
@@ -129,15 +181,16 @@
     "urgent_samples": "急诊样本",
     "avg_wait": "平均等待",
     "minutes": "分钟",
-    "start": "开始"
+    "start": "开始",
+    "started": "已开始"
   },
   "orders": {
     "title": "新建检验",
     "subtitle": "创建新的检验样本和订单",
     "steps": {
-      "patient": "1. 选择患者",
-      "tests": "2. 选择检验项目",
-      "confirm": "3. 确认订单"
+      "select_patient": "选择患者",
+      "select_tests": "选择检验项目",
+      "confirm_order": "确认订单"
     },
     "search_patient": "搜索患者...",
     "no_patient_found": "未找到相关患者",
@@ -150,12 +203,17 @@
       "count": "{{count}} 项"
     },
     "create_sample": "创建样本",
+    "quick_packages": "快捷套餐",
+    "package_includes": "包含: {{tests}}",
     "messages": {
       "select_patient": "请选择患者",
       "select_tests": "请选择检验项目",
       "success": "样本 {{id}} 创建成功",
       "error": "创建失败，请重试"
-    }
+    },
+    "custom_sample_id": "使用自定义样本ID",
+    "custom_sample_id_placeholder": "例如: 23102401",
+    "id_exists_error": "ID已存在"
   },
   "results": {
     "title": "结果录入",
@@ -190,8 +248,12 @@
     },
     "messages": {
       "verified_success": "结果已审核",
-      "verify_failed": "审核失败"
+      "verify_failed": "审核失败",
+      "edit_success": "结果更新成功",
+      "edit_failed": "更新结果失败"
     },
+    "edit_title": "编辑结果",
+    "edit_value": "结果值",
     "no_data": "暂无结果数据"
   },
   "instruments": {
@@ -204,15 +266,37 @@
       "total": "总计仪器"
     },
     "no_instruments": "暂无仪器配置",
+    "monitoring_started": "已开启仪器监控",
+    "monitoring_stopped": "已停止仪器监控",
+    "messages_received": "消息数量",
     "status": {
       "online": "在线",
-      "offline": "离线"
+      "offline": "离线",
+      "connected": "已连接",
+      "disconnected": "未连接",
+      "error": "连接错误",
+      "reconnecting": "正在重新连接"
     },
+    "edit_instrument": "编辑仪器",
     "fields": {
+      "name": "仪器名称",
+      "model": "型号",
+      "manufacturer": "制造商",
+      "manufacturer_model": "厂商 / 型号",
       "connection_type": "连接方式",
+      "connection": "连接方式",
       "protocol": "通讯协议",
+      "protocol_layer": "协议层",
       "port": "端口",
+      "host_ip": "主机 / IP",
+      "mode": "模式",
       "baud_rate": "波特率",
+      "data_bits": "数据位",
+      "parity": "校验位",
+      "stop_bits": "停止位",
+      "watch_folder": "监听目录",
+      "file_pattern": "文件匹配模式",
+      "browse": "浏览",
       "last_activity": "最后活动"
     },
     "connection_types": {
@@ -223,13 +307,106 @@
     "protocols": {
       "astm": "ASTM E1394",
       "hl7": "HL7 v2.x",
-      "csv": "CSV 文件"
+      "csv": "CSV 文件",
+      "custom": "自定义驱动"
     },
     "actions": {
       "connect": "连接",
       "disconnect": "断开",
       "test": "测试",
       "configure": "配置"
+    },
+    "csv_config": "CSV 列映射配置",
+    "csv_delimiter": "分隔符",
+    "csv_delimiters": {
+      "comma": "逗号",
+      "tab": "制表符",
+      "semicolon": "分号",
+      "pipe": "竖线"
+    },
+    "csv_has_header": "文件包含标题行",
+    "csv_sample_id_col": "样本ID列",
+    "csv_test_code_col": "检测项目列",
+    "csv_value_col": "结果值列",
+    "csv_unit_col": "单位列",
+    "messages": {
+      "connected": "已连接 {{name}}",
+      "connect_failed": "连接失败",
+      "connect_error": "连接出错",
+      "disconnected": "已断开 {{name}}",
+      "disconnect_error": "断开出错",
+      "add_success": "已添加仪器",
+      "add_failed": "添加仪器失败",
+      "update_success": "已更新仪器配置",
+      "update_failed": "更新仪器配置失败",
+      "delete_success": "已删除仪器",
+      "delete_failed": "删除仪器失败",
+      "error_unsupported_file_mode": "暂不支持文件监听模式",
+      "error_no_serial_port": "未配置串口路径",
+      "error_no_tcp_port": "未配置TCP端口"
+    },
+    "wizard": {
+      "title": "添加仪器向导",
+      "step_of": "第 {{current}} 步，共 {{total}} 步",
+      "switch_manual": "切换到手动模式",
+      "switch_wizard": "切换到向导模式",
+      "generic": "通用/自定义驱动",
+      "select_driver": "请选择仪器驱动程序",
+      "custom_driver": "自定义配置",
+      "custom_driver_desc": "手动配置仪器连接参数",
+      "test_prompt": "点击下方按钮测试与仪器的连接状态",
+      "testing_connection": "正在测试连接...",
+      "connection_success": "连接测试成功！",
+      "connection_failed": "连接测试失败，请检查配置",
+      "mapping_desc": "以下是该仪器的检测项目映射关系",
+      "instrument_code": "仪器项目代码",
+      "lims_code": "LIMS 项目代码",
+      "no_mapping": "该驱动未定义默认映射",
+      "summary": "配置摘要",
+      "driver_label": "驱动程序",
+      "connection_failed_msg": "无法连接到该端口",
+      "test_connection": "测试连接"
+    },
+    "form": {
+      "connection_type": "连接类型",
+      "protocol": "协议类型",
+      "port": "选择端口",
+      "select_port": "请选择端口...",
+      "baud_rate": "波特率",
+      "parity": "校验位",
+      "host": "主机地址",
+      "port_number": "端口号",
+      "hl7_mode": "HL7 连接模式",
+      "watch_folder": "监听文件夹",
+      "file_pattern": "文件名模式",
+      "name": "仪器名称",
+      "name_placeholder": "例如：迈瑞 BC-3000",
+      "client_mode": "客户端模式 (主动连接)",
+      "client_mode_desc": "连接到外部仪器或 LIS",
+      "server_mode": "服务端模式 (等待连接)",
+      "server_mode_desc": "监听仪器发起的连接"
+    },
+    "connections": {
+      "serial": "串口连接",
+      "tcp": "网络 (TCP/IP)",
+      "file": "文件监听"
+    },
+    "parity": {
+      "none": "无 (None)",
+      "even": "偶校验 (Even)",
+      "odd": "奇校验 (Odd)"
+    },
+    "debugger": {
+      "title": "仪器串口调试助手",
+      "port": "物理端口",
+      "connect": "连接",
+      "disconnect": "断开",
+      "simulate": "模拟数据",
+      "clear": "清空日志",
+      "ready": "准备就绪，等待监听数据...",
+      "status_changed": "连接状态变更: {{status}}",
+      "connected": "已连接",
+      "disconnected": "未连接"
     }
   },
   "unmatched": {
@@ -284,6 +461,14 @@
     "general": "常规设置",
     "language": "语言",
     "select_language": "选择语言",
+    "languages": {
+      "zh": "中文 (简体)",
+      "en": "English",
+      "es": "西班牙语",
+      "fr": "法语",
+      "pt": "葡萄牙语",
+      "ar": "阿拉伯语"
+    },
     "lab_info": "实验室信息",
     "backup": "备份与恢复",
     "subtitle": "配置实验室信息和系统参数",
@@ -293,6 +478,8 @@
     "security": "安全设置",
     "security_desc": "管理用户账户和访问权限",
     "license": "许可证",
+    "system_actions": "系统操作",
+    "system_actions_desc": "控制应用程序状态",
     "license_desc": "软件授权信息",
     "form": {
       "lab_name": "实验室名称",
@@ -303,10 +490,20 @@
     "backup_section": {
       "location": "数据库位置",
       "note": "请定期备份至外部存储设备",
-      "backup_btn": "备份数据库",
-      "restore_btn": "恢复数据库"
+      "backup_btn": "立即备份",
+      "restore_btn": "恢复数据",
+      "manual_backup": "手动备份",
+      "auto_backup": "自动备份",
+      "enable_auto": "启用自动备份",
+      "interval": "备份间隔",
+      "location_label": "备份位置",
+      "select_folder_placeholder": "请选择备份文件夹...",
+      "use_default_prompt": "尚未设置备份路径。是否使用默认路径？\n\n默认路径：{{path}}",
+      "manual_select_hint": "点击取消以手动选择其他文件夹。"
     },
     "license_section": {
+      "activation_key": "激活码",
+      "activate_btn": "立即激活",
       "status": "许可证状态",
       "activated": "已激活",
       "trial": "试用版",
@@ -314,7 +511,14 @@
       "inactive": "未激活",
       "machine_id": "机器 ID",
       "activated_at": "激活日期",
-      "version": "版本"
+      "version": "版本",
+      "days_remaining": "{{count}} 天剩余",
+      "expired": "已过期",
+      "trial_expired": "试用期已过",
+      "active_trial": "试用中",
+      "copy": "复制",
+      "copied": "机器 ID 已复制",
+      "placeholder": "将激活码粘贴在此处..."
     },
     "users": {
       "admin": "管理员",
@@ -323,12 +527,18 @@
       "add_user": "添加用户"
     },
     "messages": {
-        "backup_location": "请选择备份保存位置...",
-        "backup_success": "数据库备份成功",
-        "backup_failed": "备份失败",
-        "restore_confirm": "确定要恢复数据库吗？当前数据将被覆盖。",
-        "restore_success": "数据库恢复成功，请重启应用",
-        "restore_failed": "恢复失败"
+      "backup_location": "请选择备份保存位置...",
+      "backup_success": "数据库备份成功",
+      "backup_failed": "备份失败",
+      "restore_confirm": "确定要恢复数据库吗？当前数据将被覆盖。",
+      "restore_success": "数据库恢复成功，请重启应用",
+      "restore_failed": "恢复失败",
+      "intervals": {
+        "hourly": "每小时 (测试)",
+        "daily": "每天 (零点)",
+        "weekly": "每周 (周日)",
+        "monthly": "每月 (1号)"
+      }
     }
   },
   "reports": {
@@ -351,6 +561,38 @@
     },
     "no_data": "没有找到已完成的报告"
   },
+  "report": {
+    "preview_title": "报告预览",
+    "print": "打印",
+    "export_pdf": "导出 PDF",
+    "back": "返回",
+    "loading": "加载报告中...",
+    "not_found": "未找到报告",
+    "lab_report_title": "检验报告单",
+    "printed_at": "打印时间",
+    "signature": "审核签名",
+    "report_footer": "报告页脚",
+    "default_footer": "本报告仅供参考，具体诊断请咨询专业医生。"
+  },
+  "critical": {
+    "alert_title": "危急值警报",
+    "message": "检测到危急值，请立即通知临床医生",
+    "acknowledge": "我已确认此危急值",
+    "confirm": "确认",
+    "patient": "患者",
+    "test": "检测项目",
+    "value": "结果值",
+    "ref_range": "参考范围"
+  },
+  "delta": {
+    "alert_title": "Delta Check 警告",
+    "message": "检测到该患者检测值的剧烈波动，请核实样本或患者信息",
+    "current_value": "当前值",
+    "previous_value": "前次值",
+    "previous_date": "测试日期",
+    "change_percent": "变化幅度",
+    "acknowledge": "我已确认此警告"
+  },
   "catalog": {
     "title": "检验项目",
     "subtitle": "管理检验项目目录和参考范围",
@@ -359,7 +601,8 @@
     "search_placeholder": "搜索项目代码或名称...",
     "table": {
       "code": "代码",
-      "name": "名称",
+      "name": "项目名称",
+      "name_en": "英文名称",
       "category": "类别",
       "unit": "单位",
       "ref_male": "参考范围 (男)",
@@ -377,12 +620,39 @@
       "active": "启用",
       "inactive": "停用"
     },
+    "items": {
+      "WBC": "白细胞计数",
+      "RBC": "红细胞计数",
+      "HGB": "血红蛋白",
+      "HCT": "红细胞压积",
+      "PLT": "血小板计数",
+      "MCV": "平均红细胞体积",
+      "MCH": "平均红细胞血红蛋白",
+      "MCHC": "平均红细胞血红蛋白浓度",
+      "NEUT%": "中性粒细胞百分比",
+      "LYMPH%": "淋巴细胞百分比",
+      "GLU": "葡萄糖",
+      "BUN": "尿素氮",
+      "CREA": "肌酐",
+      "UA": "尿酸",
+      "ALT": "谷丙转氨酶",
+      "AST": "谷草转氨酶",
+      "TBIL": "总胆红素",
+      "TP": "总蛋白",
+      "ALB": "白蛋白",
+      "TC": "总胆固醇",
+      "TG": "甘油三酯",
+      "HDL": "高密度脂蛋白",
+      "LDL": "低密度脂蛋白",
+      "HbA1c": "糖化血红蛋白"
+    },
     "form": {
       "title_add": "新增项目",
       "title_edit": "编辑项目",
       "code": "项目代码",
-      "name": "项目名称",
-      "category": "类别",
+      "name": "显示名称",
+      "name_en": "英文名称",
+      "category": "所属类别",
       "unit": "单位",
       "ref_range_male": "参考范围 (男性)",
       "ref_range_female": "参考范围 (女性)",
@@ -393,7 +663,175 @@
     },
     "messages": {
       "create_success": "创建成功",
-      "update_success": "更新成功"
+      "create_failed": "创建失败",
+      "update_success": "更新成功",
+      "update_failed": "更新失败",
+      "status_update_failed": "状态更新失败"
+    }
+  },
+  "mappings": {
+    "title": "项目映射",
+    "instrument_code": "仪器项目代码",
+    "lims_panel": "LIMS 检测项目",
+    "factor": "计算因子",
+    "code_exists": "项目代码已存在",
+    "select_panel": "选择项目",
+    "no_mappings": "未配置映射关系",
+    "instrument_code_placeholder": "例如: WBC, 1, GLU"
+  },
+  "packages": {
+    "CBC": {
+      "name": "血常规",
+      "description": "全血细胞计数"
+    },
+    "LFT": {
+      "name": "肝功能三项",
+      "description": "ALT, AST, TBIL"
+    },
+    "RFT": {
+      "name": "肾功能",
+      "description": "BUN, CREA, UA"
+    },
+    "LIPID": {
+      "name": "血脂四项",
+      "description": "TC, TG, HDL, LDL"
+    }
+  },
+  "admin": {
+    "user_management": "用户管理",
+    "user_management_subtitle": "管理系统用户及其权限",
+    "users": {
+      "username": "用户名",
+      "full_name": "姓名",
+      "role": "角色",
+      "actions": "操作",
+      "you": "当前用户",
+      "disabled": "已禁用"
+    },
+    "roles": {
+      "admin": "管理员",
+      "technician": "检验技师",
+      "viewer": "访客"
+    },
+    "add_user_btn": "添加用户",
+    "actions": {
+      "title": "操作",
+      "add_user": "添加用户",
+      "change_password": "修改密码",
+      "edit": "编辑",
+      "delete": "删除",
+      "enable": "启用",
+      "disable": "禁用"
+    },
+    "dialog": {
+      "create_title": "创建用户",
+      "edit_title": "编辑用户"
+    },
+    "form": {
+      "username": "用户名",
+      "full_name": "姓名",
+      "role": "角色",
+      "password": "密码",
+      "new_password": "新密码 (留空则保持不变)"
+    },
+    "messages": {
+      "fill_required": "请填写必填项",
+      "password_required": "新用户必须设置密码",
+      "update_success": "用户更新成功",
+      "update_failed": "更新失败",
+      "create_success": "用户创建成功",
+      "create_failed": "创建失败",
+      "status_disabled": "用户已禁用",
+      "status_enabled": "用户已启用",
+      "delete_confirm": "确定要删除此用户吗？",
+      "delete_success": "用户删除成功",
+      "delete_failed": "删除用户失败",
+      "toggle_failed": "更改状态失败"
+    }
+  },
+  "wizard": {
+    "title": "仪器配置向导",
+    "select_driver": "请选择仪器驱动程序",
+    "custom_driver": "自定义配置",
+    "custom_driver_desc": "手动配置仪器连接参数",
+    "test_prompt": "点击按钮测试仪器连接",
+    "test_connection": "测试连接",
+    "testing_connection": "正在测试连接...",
+    "connection_success": "连接成功！",
+    "connection_failed": "连接失败",
+    "mapping_desc": "以下是仪器测试代码到LIMS代码的映射关系",
+    "instrument_code": "仪器代码",
+    "lims_code": "LIMS代码",
+    "no_mapping": "此驱动无预设映射，请在保存后手动配置",
+    "summary": "配置摘要",
+    "driver_label": "驱动"
+  },
+  "tat": {
+    "title": "样本周转时间 (TAT)",
+    "subtitle": "监控样本处理时间并识别瓶颈",
+    "total_samples": "样本总数",
+    "completed": "已完成",
+    "at_risk": "有风险",
+    "violated": "超时",
+    "last_24h": "最近24小时",
+    "avg_time": "平均时间",
+    "violation_rate": "违反率: {{rate}}%",
+    "by_priority": "按优先级统计",
+    "samples": "样本",
+    "violation": "违反",
+    "stat": "紧急",
+    "urgent": "普通紧急",
+    "routine": "常规",
+    "violated_alert": "{{count}} 个样本超过 TAT",
+    "sample_id": "样本ID",
+    "priority": "优先级",
+    "elapsed_time": "经过时间",
+    "exceeds_by": "超过",
+    "in_progress": "处理中",
+    "no_in_progress": "无处理中的样本",
+    "completed_summary": "已完成样本",
+    "no_completed": "无已完成样本",
+    "messages": {
+      "stat_threshold": "STAT 必须 < 30分钟",
+      "urgent_threshold": "紧急 < 4小时",
+      "routine_threshold": "常规 < 24小时"
+    }
+  },
+  "qc": {
+    "title": "质量控制",
+    "subtitle": "监控质控物料并验证仪器准确性",
+    "record_result": "记录QC结果",
+    "materials": "质控物料",
+    "no_materials": "暂无可用的质控物料",
+    "lot": "批号",
+    "target": "目标值",
+    "material": "物料",
+    "results_history": "结果历史（最近30天）",
+    "no_results": "暂无记录的结果",
+    "date": "日期/时间",
+    "value": "测定值",
+    "deviation": "偏离",
+    "status": "状态",
+    "rules_violated": "违反的规则",
+    "statistics": "统计信息",
+    "target_value": "目标值",
+    "std_deviation": "标准差",
+    "cv_percent": "CV%",
+    "latest_result": "最新结果",
+    "record_new_result": "记录QC结果",
+    "measured_value": "测定值",
+    "notes": "备注",
+    "notes_placeholder": "例如：设备重新初始化，温度正常",
+    "preview_title": "QC分析预览：",
+    "submit": "提交QC",
+    "messages": {
+      "load_failed": "加载质控物料失败",
+      "load_results_failed": "加载QC结果失败",
+      "missing_value": "请输入测定值",
+      "invalid_value": "测定值无效",
+      "record_failed": "记录QC结果失败",
+      "qc_passed": "✓ QC通过，仪器可用",
+      "qc_warning": "⚠️ QC警告：{{rule}}，请检查仪器"
     }
   }
 }

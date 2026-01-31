@@ -10,7 +10,8 @@ export function useDashboard() {
     recentSamples: [] as {
       id: number;
       sample_id: string;
-      patient_name: string;
+      first_name: string;
+      last_name: string;
       tests: string;
       status: string;
       time: string;

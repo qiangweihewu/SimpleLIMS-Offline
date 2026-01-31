@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { testPanelService, type TestPanel } from '@/services/database.service';
 import { toast } from 'sonner';
 
 export function useTestPanels() {
+  const { t } = useTranslation();
   const [testPanels, setTestPanels] = useState<TestPanel[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,11 +23,12 @@ export function useTestPanels() {
   const createPanel = async (data: Omit<TestPanel, 'id' | 'is_active'>) => {
     try {
       await testPanelService.create(data);
+      toast.success(t('catalog.messages.create_success'));
       await fetchPanels();
       return true;
     } catch (err) {
       console.error('Failed to create test panel:', err);
-      toast.error('创建失败');
+      toast.error(t('catalog.messages.create_failed'));
       return false;
     }
   };
@@ -33,11 +36,12 @@ export function useTestPanels() {
   const updatePanel = async (id: number, data: Partial<TestPanel>) => {
     try {
       await testPanelService.update(id, data);
+      toast.success(t('catalog.messages.update_success'));
       await fetchPanels();
       return true;
     } catch (err) {
       console.error('Failed to update test panel:', err);
-      toast.error('更新失败');
+      toast.error(t('catalog.messages.update_failed'));
       return false;
     }
   };
@@ -49,7 +53,7 @@ export function useTestPanels() {
       return true;
     } catch (err) {
       console.error('Failed to toggle active status:', err);
-      toast.error('状态更新失败');
+      toast.error(t('catalog.messages.status_update_failed'));
       return false;
     }
   };

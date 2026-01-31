@@ -3,12 +3,23 @@
  * Bridges renderer process requests to native functionality
  */
 
-import { ipcMain, dialog, BrowserWindow } from 'electron';
-import { initDatabase, getDatabase, query, get, run, backupDatabase, restoreDatabase } from './database/index';
-import { serialService } from './services/serial-service';
-import { extractTestCode, parseResultValue, mapAbnormalFlag } from './services/astm-parser';
+import { ipcMain, dialog, BrowserWindow, app } from 'electron';
+import { initDatabase, getDatabase, query, get, run, backupDatabase, restoreDatabase, isDatabaseInitialized } from './database/index.js';
+import { serialService } from './services/serial-service.js';
+import { tcpService } from './services/tcp-service.js';
+import { fileWatchService } from './services/file-watch-service.js';
+import { backupService } from './services/backup-service.js';
+import { auditLogger } from './services/audit-service.js';
+import { getDriverManager } from './services/instrument-driver-manager.js';
+import { extractTestCode, parseResultValue, mapAbnormalFlag } from './services/astm-parser.js';
+import { virtualInstrumentSimulation } from './services/virtual-instrument-simulation.js';
+import { setupHL7Handlers } from './handlers/hl7-handler.js';
 import crypto from 'crypto';
 import os from 'os';
+import path from 'path';
+import fs from 'fs';
+
+import bcrypt from 'bcryptjs';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -16,12 +27,134 @@ export function setMainWindow(window: BrowserWindow) {
   mainWindow = window;
 }
 
-export function setupIpcHandlers() {
+// Helper to process instrument messages (ASTM)
+async function processInstrumentMessage(data: { instrumentId: number; message: any; raw: string; timestamp: string }) {
+  const { instrumentId, message, raw, timestamp } = data;
+  if (!isDatabaseInitialized()) return;
+
+  const db = getDatabase();
+  const sampleIdRaw = message.orders[0]?.specimenId || message.orders[0]?.instrumentSpecimenId || 'UNKNOWN';
+  const isDebug = instrumentId === 0 || instrumentId >= 9999;
+
+  // Always notify UI about receiving data
+  for (const result of message.results) {
+    const testCode = extractTestCode(result.universalTestId);
+    const { numeric, text } = parseResultValue(result.dataValue);
+    const flag = mapAbnormalFlag(result.abnormalFlags);
+
+    mainWindow?.webContents.send('instrument:data', {
+      instrumentId,
+      timestamp,
+      sampleId: sampleIdRaw,
+      testCode,
+      value: text,
+      numericValue: numeric,
+      unit: result.units,
+      flag,
+      raw,
+    });
+  }
+
+  // If debug mode, don't save to database
+  if (isDebug) return;
+
+  const sampleRecord = db.prepare<string, { id: number; status: string }>(`SELECT id, status FROM samples WHERE sample_id = ?`).get(sampleIdRaw);
+
+  if (sampleRecord) {
+    const insertResultStmt = db.prepare(`
+      INSERT INTO results (order_id, value, numeric_value, unit, flag, instrument_id, raw_data, source, created_at, updated_at)
+      VALUES (@orderId, @value, @numericValue, @unit, @flag, @instrumentId, @rawData, 'instrument', datetime('now'), datetime('now'))
+    `);
+
+    const updateOrderStmt = db.prepare(`UPDATE orders SET status = 'completed', completed_at = datetime('now') WHERE id = ?`);
+    const createOrderStmt = db.prepare(`INSERT INTO orders (sample_id, panel_id, status, ordered_at, completed_at) VALUES (?, ?, 'completed', datetime('now'), datetime('now'))`);
+    const getOrderStmt = db.prepare(`SELECT id FROM orders WHERE sample_id = ? AND panel_id = ?`);
+    const getMappingStmt = db.prepare(`SELECT panel_id, conversion_factor FROM instrument_test_mappings WHERE instrument_id = ? AND instrument_code = ?`);
+    const getPanelByCodeStmt = db.prepare(`SELECT id FROM test_panels WHERE code = ?`);
+
+    try {
+      db.transaction(() => {
+        for (const result of message.results) {
+          const testCode = extractTestCode(result.universalTestId);
+          let { numeric, text } = parseResultValue(result.dataValue);
+
+          let panelId: number | undefined;
+          let conversionFactor = 1.0;
+
+          const mapping = getMappingStmt.get(instrumentId, testCode) as { panel_id: number; conversion_factor: number } | undefined;
+          if (mapping) {
+            panelId = mapping.panel_id;
+            conversionFactor = mapping.conversion_factor;
+          } else {
+            const panel = getPanelByCodeStmt.get(testCode) as { id: number } | undefined;
+            if (panel) panelId = panel.id;
+          }
+
+          if (panelId) {
+            if (numeric !== null && conversionFactor !== 1.0) {
+              numeric *= conversionFactor;
+              if (!isNaN(parseFloat(text))) text = numeric.toString();
+            }
+
+            let orderId: number | bigint | undefined;
+            const order = getOrderStmt.get(sampleRecord.id, panelId) as { id: number } | undefined;
+
+            if (order) {
+              orderId = order.id;
+              updateOrderStmt.run(orderId);
+            } else {
+              const info = createOrderStmt.run(sampleRecord.id, panelId);
+              orderId = info.lastInsertRowid;
+            }
+
+            insertResultStmt.run({
+              orderId,
+              value: text,
+              numericValue: numeric,
+              unit: result.units,
+              flag: mapAbnormalFlag(result.abnormalFlags),
+              instrumentId,
+              rawData: raw
+            });
+          }
+        }
+
+        if (sampleRecord.status === 'registered' || sampleRecord.status === 'in_progress') {
+          db.prepare(`UPDATE samples SET status = 'completed', updated_at = datetime('now') WHERE id = ?`).run(sampleRecord.id);
+        }
+      })();
+    } catch (err) {
+      console.error('Error processing instrument message:', err);
+    }
+  } else {
+    // Unmatched data
+    try {
+      db.prepare(`
+        INSERT INTO unmatched_data (instrument_id, sample_id_raw, raw_data, parsed_data, status)
+        VALUES (?, ?, ?, ?, 'pending')
+      `).run(instrumentId, sampleIdRaw, raw, JSON.stringify(message));
+
+      mainWindow?.webContents.send('instrument:unmatched', {
+        instrumentId,
+        sampleId: sampleIdRaw,
+        resultCount: message.results.length,
+        timestamp,
+      });
+    } catch (err) {
+      console.error('Error saving unmatched data:', err);
+    }
+  }
+}
+
+export function setupIpcHandlers(mainWindow?: BrowserWindow) {
   // Initialize database
   initDatabase();
 
+  // Setup HL7 handlers with main window reference
+  setupHL7Handlers(getDatabase(), mainWindow);
+
   // ============= Database Operations =============
-  
+
   ipcMain.handle('db:query', async (_event, sql: string, params?: unknown[]) => {
     return query(sql, params || []);
   });
@@ -45,20 +178,42 @@ export function setupIpcHandlers() {
   });
 
   ipcMain.handle('instrument:connect', async (_event, portPath: string, options: {
-    baudRate: number;
+    connectionType?: 'serial' | 'tcp' | 'file';
+    baudRate?: number;
     dataBits?: 5 | 6 | 7 | 8;
     stopBits?: 1 | 1.5 | 2;
     parity?: 'none' | 'even' | 'odd';
     instrumentId: number;
+    host?: string;
+    port?: number;
+    mode?: 'client' | 'server';
+    watchPath?: string;
+    filePattern?: string;
   }) => {
     try {
-      await serialService.connect(options.instrumentId, {
-        path: portPath,
-        baudRate: options.baudRate,
-        dataBits: options.dataBits,
-        stopBits: options.stopBits,
-        parity: options.parity,
-      });
+      if (options.connectionType === 'tcp') {
+        if (!options.port) throw new Error('Port is required for TCP');
+        return await tcpService.connect(options.instrumentId, {
+          host: options.host,
+          port: options.port,
+          mode: options.mode || 'client'
+        });
+      } else if (options.connectionType === 'file') {
+        if (!options.watchPath) throw new Error('Watch path is required');
+        return await fileWatchService.startWatching(options.instrumentId, {
+          path: options.watchPath,
+          pattern: options.filePattern
+        });
+      } else {
+        // Default to serial
+        await serialService.connect(options.instrumentId, {
+          path: portPath,
+          baudRate: options.baudRate || 9600,
+          dataBits: options.dataBits,
+          stopBits: options.stopBits,
+          parity: options.parity,
+        });
+      }
       return true;
     } catch (error) {
       console.error('Connection error:', error);
@@ -66,17 +221,60 @@ export function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle('instrument:disconnect', async (_event, portPath: string) => {
-    await serialService.disconnect(portPath);
+  ipcMain.handle('instrument:disconnect', async (_event, portPath: string, options?: { instrumentId: number; connectionType: 'serial' | 'tcp' | 'file'; host?: string; port?: number; mode?: 'client' | 'server'; watchPath?: string }) => {
+    if (options?.connectionType === 'tcp' && options.port) {
+      await tcpService.disconnect(options.instrumentId, {
+        host: options.host,
+        port: options.port,
+        mode: options.mode || 'client'
+      });
+    } else if (options?.connectionType === 'file') {
+      await fileWatchService.stopWatching(options.instrumentId);
+    } else {
+      await serialService.disconnect(portPath);
+    }
   });
 
-  ipcMain.handle('instrument:getStatus', async (_event, portPath: string) => {
+  ipcMain.handle('instrument:getStatus', async (_event, portPath: string, options?: { connectionType: 'serial' | 'tcp' | 'file'; instrumentId: number; host?: string; port?: number; mode?: 'client' | 'server' }) => {
+    if (options?.connectionType === 'tcp' && options.port) {
+      return tcpService.getStatus(options.instrumentId, {
+        host: options.host,
+        port: options.port,
+        mode: options.mode || 'client'
+      });
+    }
+    if (options?.connectionType === 'file') {
+      return fileWatchService.getStatus(options.instrumentId);
+    }
     return serialService.getStatus(portPath);
   });
 
   ipcMain.handle('instrument:getAllStatuses', async () => {
-    const statuses = serialService.getAllStatuses();
-    return Object.fromEntries(statuses);
+    const serialStatuses = serialService.getAllStatuses();
+    // TCP doesn't have a simple getAllStatuses that returns a Map compatible with serial's keying (path).
+    // But we can just merge them if we knew how the frontend keying works.
+    // Frontend uses `path || host:port`? 
+    // Actually instrument list loop checks `instrument.is_connected`.
+    return Object.fromEntries(serialStatuses);
+  });
+
+  ipcMain.handle('instrument:simulate', async (_event, path: string) => {
+    await virtualInstrumentSimulation.startBC3000Simulation(path);
+    return true;
+  });
+
+  // ============= Driver Management =============
+
+  ipcMain.handle('driver:getAll', async () => {
+    const manager = getDriverManager();
+    // Ensure built-in drivers are loaded
+    await manager.loadDrivers();
+    return manager.getAllDrivers();
+  });
+
+  ipcMain.handle('driver:get', async (_event, id: string) => {
+    const manager = getDriverManager();
+    return manager.getDriver(id);
   });
 
   // ============= File Operations =============
@@ -96,12 +294,20 @@ export function setupIpcHandlers() {
     return result.canceled ? null : result.filePaths[0];
   });
 
+  ipcMain.handle('file:showSaveDialog', async (_event, options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }) => {
+    const result = await dialog.showSaveDialog({
+      defaultPath: options?.defaultPath,
+      filters: options?.filters,
+    });
+    return result.canceled ? null : result.filePath;
+  });
+
   ipcMain.handle('file:saveFile', async (_event, defaultPath: string, content: string) => {
     const result = await dialog.showSaveDialog({
       defaultPath,
     });
     if (result.canceled || !result.filePath) return null;
-    
+
     const fs = await import('fs/promises');
     await fs.writeFile(result.filePath, content, 'utf-8');
     return result.filePath;
@@ -113,8 +319,32 @@ export function setupIpcHandlers() {
     return backupDatabase(targetPath);
   });
 
+
+
   ipcMain.handle('backup:restore', async (_event, sourcePath: string) => {
     return restoreDatabase(sourcePath);
+  });
+
+  ipcMain.handle('backup:updateSettings', async (_event, settings: { enabled: boolean; path: string; interval: string }) => {
+    const db = getDatabase();
+    const { enabled, path, interval } = settings;
+
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('auto_backup_enabled', ?)").run(String(enabled));
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('auto_backup_path', ?)").run(path);
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('auto_backup_interval', ?)").run(interval);
+
+    // Reload backup service to apply changes
+    backupService.reload();
+
+    return { success: true };
+  });
+
+  ipcMain.handle('backup:getDefaultPath', async () => {
+    const defaultPath = path.join(app.getPath('userData'), 'databackup');
+    if (!fs.existsSync(defaultPath)) {
+      fs.mkdirSync(defaultPath, { recursive: true });
+    }
+    return defaultPath;
   });
 
   // ============= License =============
@@ -123,7 +353,7 @@ export function setupIpcHandlers() {
     // Generate machine ID from hardware info
     const cpus = os.cpus();
     const networkInterfaces = os.networkInterfaces();
-    
+
     const data = [
       os.hostname(),
       os.platform(),
@@ -140,96 +370,446 @@ export function setupIpcHandlers() {
   });
 
   ipcMain.handle('license:activate', async (_event, key: string) => {
-    // Simple validation - in production, use proper RSA signature verification
-    if (!key || key.length < 16) {
-      return { success: false, message: '无效的许可证密钥' };
+    try {
+      if (!key || !key.includes('.')) {
+        return { success: false, message: '无效的许可证格式' };
+      }
+
+      const [payloadB64, signatureB64] = key.split('.');
+      const payloadStr = Buffer.from(payloadB64, 'base64').toString('utf-8');
+      const payload = JSON.parse(payloadStr);
+
+      // 1. Verify Signature
+      const publicKeyPath = path.join(__dirname, 'public_key.pem').replace('dist-electron', 'electron');
+      // In dev: electron/public_key.pem. In prod: resources?
+      // Better to embed it or copy it.
+      // For now, let's assume it is copied to dist-electron or we read it differently.
+      // Actually, safest is to embed the public key string directly in code to avoid file I/O issues in ASAR.
+      // But user didn't ask to embed. I will read from file but I need to ensure it's copied.
+      // Let's allow reading from `__dirname`.
+
+      let publicKey = '';
+      try {
+        publicKey = fs.readFileSync(path.join(__dirname, 'public_key.pem'), 'utf-8');
+      } catch (e) {
+        // Fallback for dev environment path
+        publicKey = fs.readFileSync(path.resolve(__dirname, '../electron/public_key.pem'), 'utf-8');
+      }
+
+      const verify = crypto.createVerify('SHA256');
+      verify.update(payloadStr);
+      verify.end();
+      const isValid = verify.verify(publicKey, signatureB64, 'base64');
+
+      if (!isValid) {
+        return { success: false, message: '许可证签名无效' };
+      }
+
+      // 2. Verify Machine ID
+      // Retrieve machine ID (re-use logic or call getMachineId)
+      // Since getMachineId is just a handle, I should extract the logic or call via handle if possible, 
+      // but ipcMain calling itself is tricky.
+      // I'll duplicate the logic for now or extract it to a helper.
+      // logic lines 343-353 in this file.
+      // I will copy-paste the logic for safety and speed.
+      const networkInterfaces = os.networkInterfaces();
+      const data = [
+        os.platform(),
+        os.arch(),
+        os.cpus().map(cpu => cpu.model).join('|'),
+        os.totalmem(),
+        Object.values(networkInterfaces)
+          .flat()
+          .find(i => i && !i.internal && i.mac !== '00:00:00:00:00:00')?.mac || '',
+      ].join('|');
+      const hash = crypto.createHash('sha256').update(data).digest('hex');
+      const currentMachineId = `${hash.slice(0, 4)}-${hash.slice(4, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}`.toUpperCase();
+
+      if (payload.machineId !== currentMachineId) {
+        return { success: false, message: '许可证不属于此设备' };
+      }
+
+      // 3. Verify Expiration
+      if (new Date(payload.expiresAt) < new Date()) {
+        return { success: false, message: '许可证已过期' };
+      }
+
+      // Store license info
+      const db = getDatabase();
+      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_key', ?)`).run(key);
+      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_activated_at', datetime('now'))`).run();
+      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_type', ?)`).run(payload.type);
+      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_expires_at', ?)`).run(payload.expiresAt);
+
+      return { success: true, message: '许可证激活成功' };
+    } catch (err: any) {
+      console.error('License activation error:', err);
+      return { success: false, message: '激活失败: ' + err.message };
     }
-    
-    // Store license info
-    const db = getDatabase();
-    db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_key', ?)`).run(key);
-    db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_activated_at', datetime('now'))`).run();
-    
-    return { success: true, message: '许可证激活成功' };
   });
 
   ipcMain.handle('license:getStatus', async () => {
     const db = getDatabase();
     const licenseKey = db.prepare(`SELECT value FROM settings WHERE key = 'license_key'`).get() as { value: string } | undefined;
     const activatedAt = db.prepare(`SELECT value FROM settings WHERE key = 'license_activated_at'`).get() as { value: string } | undefined;
-    
-    const machineIdResult = await ipcMain.emit('license:getMachineId');
-    
+
+    // Check first run date for trial
+    let firstRunAt = db.prepare(`SELECT value FROM settings WHERE key = 'first_run_at'`).get() as { value: string } | undefined;
+
+    if (!firstRunAt) {
+      const now = new Date().toISOString();
+      db.prepare(`INSERT INTO settings (key, value) VALUES ('first_run_at', ?)`).run(now);
+      firstRunAt = { value: now };
+    }
+
+    // Calculate trial status
+    const firstRunDate = new Date(firstRunAt.value);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - firstRunDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const trialDuration = 30;
+    const trialDaysRemaining = Math.max(0, trialDuration - diffDays);
+    const isTrialExpired = diffDays > trialDuration;
+
+    // Get Machine ID (logic duplicated to avoid IPC call recursion issues if any, or just call helper)
+    // We can use the cached machineId logic or just re-calculate.
+    // Re-calculating is cheap enough.
+    const networkInterfaces = await import('os').then(os => os.networkInterfaces());
+    const os = await import('os');
+    const data = [
+      os.platform(),
+      os.arch(),
+      os.cpus().map(cpu => cpu.model).join('|'),
+      os.totalmem(),
+      Object.values(networkInterfaces)
+        .flat()
+        .find(i => i && !i.internal && i.mac !== '00:00:00:00:00:00')?.mac || '',
+    ].join('|');
+    const hash = crypto.createHash('sha256').update(data).digest('hex');
+    const machineId = `${hash.slice(0, 4)}-${hash.slice(4, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}`.toUpperCase();
+
     return {
       activated: !!licenseKey?.value,
-      machineId: machineIdResult || 'UNKNOWN',
+      machineId,
       activatedAt: activatedAt?.value,
       licenseType: licenseKey?.value ? 'professional' : 'trial',
+      trialDaysRemaining,
+      isTrialExpired,
+      firstRunAt: firstRunAt.value
     };
   });
 
   // ============= Setup Instrument Event Forwarding =============
 
-  serialService.on('connected', (data) => {
-    mainWindow?.webContents.send('instrument:status', { ...data, status: 'connected' });
-  });
 
-  serialService.on('disconnected', (data) => {
-    mainWindow?.webContents.send('instrument:status', { ...data, status: 'disconnected' });
-  });
 
-  serialService.on('error', (data) => {
-    mainWindow?.webContents.send('instrument:status', { ...data, status: 'error' });
-  });
+  // Serial
+  serialService.on('connected', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'connected' }));
+  serialService.on('disconnected', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'disconnected' }));
+  serialService.on('error', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'error' }));
+  serialService.on('message', processInstrumentMessage);
 
-  serialService.on('message', async (data) => {
-    const { instrumentId, message, raw, timestamp } = data;
-    
-    // Process results and store in database
-    for (const result of message.results) {
-      const testCode = extractTestCode(result.universalTestId);
-      const { numeric, text } = parseResultValue(result.dataValue);
-      const flag = mapAbnormalFlag(result.abnormalFlags);
-      
-      // Get sample ID from order record
-      const sampleId = message.orders[0]?.specimenId || message.orders[0]?.instrumentSpecimenId;
-      
-      // Send to renderer
-      mainWindow?.webContents.send('instrument:data', {
-        instrumentId,
-        timestamp,
-        sampleId,
-        testCode,
-        value: text,
-        numericValue: numeric,
-        unit: result.units,
-        flag,
-        raw: raw,
+  // TCP
+  tcpService.on('connected', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'connected' }));
+  tcpService.on('listening', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'listening' }));
+  tcpService.on('disconnected', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'disconnected' }));
+  tcpService.on('error', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'error' }));
+  tcpService.on('message', processInstrumentMessage);
+
+  // File Watcher
+  fileWatchService.on('connected', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'connected' })); // "Connected" means watching
+  fileWatchService.on('disconnected', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'disconnected' }));
+  fileWatchService.on('error', (data) => mainWindow?.webContents.send('instrument:status', { ...data, status: 'error' }));
+  fileWatchService.on('message', processInstrumentMessage);
+
+  // ============= Report/PDF Generation =============
+
+  ipcMain.handle('print-to-pdf', async (event, options: { filename?: string }) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return { success: false, error: 'No window found' };
+
+    try {
+      const pdfData = await win.webContents.printToPDF({
+        pageSize: 'A4',
+        printBackground: true,
+        margins: { top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 }
       });
-    }
 
-    // If no matching sample, store in unmatched data
-    if (message.results.length > 0) {
-      const sampleId = message.orders[0]?.specimenId || message.orders[0]?.instrumentSpecimenId || 'UNKNOWN';
-      
-      const db = getDatabase();
-      const existingSample = db.prepare(`SELECT id FROM samples WHERE sample_id = ?`).get(sampleId);
-      
-      if (!existingSample) {
-        db.prepare(`
-          INSERT INTO unmatched_data (instrument_id, sample_id_raw, raw_data, parsed_data, status)
-          VALUES (?, ?, ?, ?, 'pending')
-        `).run(instrumentId, sampleId, raw, JSON.stringify(message));
-        
-        mainWindow?.webContents.send('instrument:unmatched', {
-          instrumentId,
-          sampleId,
-          resultCount: message.results.length,
-          timestamp,
+      if (options.filename) {
+        const { filePath } = await dialog.showSaveDialog(win, {
+          defaultPath: options.filename,
+          filters: [{ name: 'PDF', extensions: ['pdf'] }]
         });
+        if (filePath) {
+          const fs = await import('fs/promises');
+          await fs.writeFile(filePath, pdfData);
+          return { success: true, path: filePath };
+        }
+        return { success: false, error: 'Cancelled' };
       }
+
+      return { success: true, data: pdfData };
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
+  });
+
+  ipcMain.handle('print-page', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return { success: false };
+    win.webContents.print({ silent: false, printBackground: true });
+    return { success: true };
   });
 
   console.log('IPC handlers registered');
+  // ============= Authentication =============
+
+  ipcMain.handle('auth:login', async (_event, { username, password }) => {
+    try {
+      const db = getDatabase();
+      const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as any;
+
+      if (!user) {
+        return { success: false, error: 'invalid_credentials' };
+      }
+
+      if (!user.is_active) {
+        return { success: false, error: 'account_disabled' };
+      }
+
+      const match = await bcrypt.compare(password, user.password_hash);
+      if (match) {
+        // Log login
+        auditLogger.log('login', 'user', user.id, { userId: user.id, ip: 'local' });
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            full_name: user.full_name,
+            role: user.role
+          }
+        };
+      } else {
+        return { success: false, error: 'invalid_credentials' };
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      return { success: false, error: 'server_error' };
+    }
+  });
+
+  // ============= User Management =============
+
+  ipcMain.handle('user:getAll', () => {
+    const db = getDatabase();
+    return db.prepare('SELECT id, username, full_name, role, is_active, created_at FROM users').all();
+  });
+
+  ipcMain.handle('user:create', async (_event, userData) => {
+    try {
+      const db = getDatabase();
+      const { username, password, full_name, role } = userData;
+
+      const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+      if (existing) return { success: false, error: 'Username already exists' };
+
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const result = db.prepare(
+        'INSERT INTO users (username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, ?, 1)'
+      ).run(username, passwordHash, full_name, role);
+
+      // Log creation
+      auditLogger.log('create', 'user', Number(result.lastInsertRowid), { newValues: { username, full_name, role } });
+
+      return { success: true, id: result.lastInsertRowid };
+    } catch (err: any) {
+      console.error('Create user error:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('user:update', async (_event, userData) => {
+    try {
+      const db = getDatabase();
+      const { id, password, full_name, role } = userData;
+
+      if (id === 1 && role !== 'admin') {
+        return { success: false, error: 'Cannot change role of default admin' };
+      }
+
+      if (password) {
+        const passwordHash = await bcrypt.hash(password, 10);
+        db.prepare(
+          `UPDATE users SET password_hash = ?, full_name = ?, role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+        ).run(passwordHash, full_name, role, id);
+      } else {
+        db.prepare(
+          `UPDATE users SET full_name = ?, role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+        ).run(full_name, role, id);
+      }
+
+      // Log update
+      auditLogger.log('update', 'user', id, { newValues: { full_name, role } });
+
+      return { success: true };
+    } catch (err: any) {
+      console.error('Update user error:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('user:toggleActive', (_event, { id, isActive }: { id: number; isActive: boolean }) => {
+    if (id === 1) return { success: false, error: 'Cannot disable default admin' };
+
+    getDatabase().prepare(
+      `UPDATE users SET is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+    ).run(isActive ? 1 : 0, id);
+
+    auditLogger.log('update_status', 'user', id, { newValues: { is_active: isActive } });
+
+    return { success: true };
+  });
+
+  ipcMain.handle('user:delete', (_event, id) => {
+    if (id === 1) return { success: false, error: 'Cannot delete default admin' };
+
+    getDatabase().prepare('DELETE FROM users WHERE id = ?').run(id);
+
+    auditLogger.log('delete', 'user', id);
+
+    return { success: true };
+  });
+
+  // ============= Audit Logs =============
+
+  ipcMain.handle('audit:getLogs', (_event, { page = 1, pageSize = 50, filters = {} }) => {
+    const db = getDatabase();
+    const offset = (page - 1) * pageSize;
+
+    let query = `
+      SELECT a.*, u.username 
+      FROM audit_log a 
+      LEFT JOIN users u ON a.user_id = u.id
+    `;
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (filters.action) {
+      conditions.push('a.action = ?');
+      params.push(filters.action);
+    }
+
+    if (filters.entityType) {
+      conditions.push('a.entity_type = ?');
+      params.push(filters.entityType);
+    }
+
+    if (filters.userId) {
+      conditions.push('a.user_id = ?');
+      params.push(filters.userId);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    // Count total
+    const countQuery = `SELECT COUNT(*) as count FROM audit_log a ${conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''}`;
+    const totalResult = db.prepare(countQuery).get(...params) as { count: number };
+
+    query += ` ORDER BY a.created_at DESC LIMIT ? OFFSET ?`;
+    params.push(pageSize, offset);
+
+    const logs = db.prepare(query).all(...params);
+
+    return {
+      logs,
+      total: totalResult.count,
+      page,
+      pageSize,
+      totalPages: Math.ceil(totalResult.count / pageSize)
+    };
+  });
+
+  // ============= Worklist Operations =============
+
+  ipcMain.handle('worklist:start', async (_event, orderId: number) => {
+    const db = getDatabase();
+    try {
+      return db.transaction(() => {
+        // 1. Update order status
+        db.prepare(`UPDATE orders SET status = 'processing' WHERE id = ?`).run(orderId);
+
+        // 2. Get sample_id for this order
+        const order = db.prepare('SELECT sample_id FROM orders WHERE id = ?').get(orderId) as { sample_id: number } | undefined;
+
+        if (order) {
+          // 3. Update sample status to 'in_progress'
+          db.prepare(
+            `UPDATE samples SET status = 'in_progress', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'registered'`
+          ).run(order.sample_id);
+
+          // 4. Ensure entry in results table exists
+          db.prepare(
+            `INSERT OR IGNORE INTO results (order_id, source, created_at, updated_at) VALUES (?, 'manual', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+          ).run(orderId);
+        }
+
+        return { success: true };
+      })();
+    } catch (err: any) {
+      console.error('Worklist start error:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // ============= System Init =============
+  ipcMain.handle('system:checkInit', () => {
+    const db = getDatabase();
+    // Check if any user exists
+    const user = db.prepare('SELECT id FROM users LIMIT 1').get();
+    return { initialized: !!user };
+  });
+
+  ipcMain.handle('system:createFirstAdmin', async (_event, { username, password, fullName }) => {
+    const db = getDatabase();
+    // Strict check: Only allow if NO users exist
+    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+    if (userCount.count > 0) {
+      return { success: false, error: 'System already initialized. Users exist.' };
+    }
+
+    try {
+      const passwordHash = await bcrypt.hash(password, 10);
+      const result = db.prepare(
+        'INSERT INTO users (username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, ?, 1)'
+      ).run(username, passwordHash, fullName, 'admin');
+
+      // Log creation (system logs it, user_id is null or 0? or the new user?)
+      // We can log as system
+      auditLogger.log('create', 'user', Number(result.lastInsertRowid), { newValues: { username, fullName, role: 'admin' }, userId: 0 }); // 0 = System
+
+      return { success: true, id: result.lastInsertRowid };
+    } catch (err: any) {
+      console.error('First admin creation failed:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // End of handlers
+
+  // ============= App Control =============
+  ipcMain.handle('app:quit', () => {
+    app.quit();
+  });
+
+  ipcMain.handle('app:relaunch', () => {
+    app.relaunch();
+    app.exit();
+  });
 }

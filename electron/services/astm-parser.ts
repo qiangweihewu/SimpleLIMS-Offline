@@ -310,6 +310,9 @@ export function parseASTMMessage(rawData: string): ASTMMessage {
     }
   }
 
+  // Filter out histogram/BLOB data from results
+  message.results = filterHistogramData(message.results);
+
   return message;
 }
 
@@ -343,6 +346,41 @@ export function parseResultValue(value: string | undefined): { numeric: number |
     numeric: isNaN(numeric) ? null : numeric,
     text: trimmed,
   };
+}
+
+/**
+ * Check if a result record contains histogram/binary data
+ * Histogram data is typically:
+ * - Very long data values (> 500 chars)
+ * - Contains non-printable characters
+ * - Test codes containing "HIST", "GRAPH", "PLT-O", "DIFF-SCTR" etc.
+ */
+export function isHistogramData(result: ResultRecord): boolean {
+  // Check test code patterns that indicate histogram
+  const histogramPatterns = ['HIST', 'GRAPH', 'SCTR', 'PLT-O', 'DIFF-', 'SIZE', 'MORPH'];
+  const testCode = extractTestCode(result.universalTestId).toUpperCase();
+  if (histogramPatterns.some(p => testCode.includes(p))) return true;
+  
+  // Check for very long data (likely binary)
+  if (result.dataValue && result.dataValue.length > 500) return true;
+  
+  // Check for non-printable characters (binary data)
+  // eslint-disable-next-line no-control-regex
+  if (result.dataValue && /[\x00-\x08\x0E-\x1F]/.test(result.dataValue)) return true;
+  
+  return false;
+}
+
+/**
+ * Filter histogram/BLOB data from results array
+ */
+export function filterHistogramData(results: ResultRecord[]): ResultRecord[] {
+  const filtered = results.filter(r => !isHistogramData(r));
+  const removedCount = results.length - filtered.length;
+  if (removedCount > 0) {
+    console.log(`[ASTM Parser] Filtered ${removedCount} histogram/BLOB record(s) from results`);
+  }
+  return filtered;
 }
 
 /**

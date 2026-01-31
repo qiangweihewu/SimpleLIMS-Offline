@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { useState, useRef } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Users, TestTubes, ClipboardList, FileText, Settings, Microscope, AlertCircle, Menu, X, FlaskConical, ListChecks } from 'lucide-react';
+import { LayoutDashboard, Users, TestTubes, ClipboardList, FileText, Settings, Microscope, AlertCircle, Menu, X, FlaskConical, ListChecks, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const navigation = [
@@ -19,8 +20,12 @@ const navigation = [
 
 export function AppLayout() {
   const { t, i18n } = useTranslation();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -37,7 +42,12 @@ export function AppLayout() {
 
         <nav className="p-4 space-y-1">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href || (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+            const isDashboard = item.href === '/dashboard';
+            const isActive = isDashboard
+              ? location.pathname === '/dashboard'
+              : location.pathname.startsWith(item.href) ||
+              (item.href === '/samples' && location.pathname.startsWith('/orders'));
+
             return (
               <NavLink key={item.key} to={item.href} className={cn('flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors', isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100')} onClick={() => setSidebarOpen(false)}>
                 <item.icon className="h-5 w-5" />
@@ -45,6 +55,9 @@ export function AppLayout() {
               </NavLink>
             );
           })}
+
+          {/* Admin-only: Users Management */}
+
         </nav>
 
         <div className="absolute bottom-4 left-4 right-4">
@@ -61,7 +74,36 @@ export function AppLayout() {
           <div className="flex-1" />
           <div className="flex items-center gap-4">
             <div className="text-sm text-gray-600">{new Date().toLocaleDateString(i18n.language, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</div>
-            <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">管</div>
+
+            {/* User Menu Dropdown */}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors"
+                title={user?.full_name}
+              >
+                <Users className="h-5 w-5" />
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <div className="px-4 py-2 border-b text-sm">
+                    <p className="font-medium text-gray-900">{user?.full_name}</p>
+                    <p className="text-xs text-gray-500 capitalize">{t(`admin.roles.${user?.role}`, user.role)}</p>
+                  </div>
+
+
+
+                  <button
+                    onClick={() => { logout(); navigate('/login'); setUserMenuOpen(false); }}
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {t('common.logout', 'Logout')}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <main className="p-6"><Outlet /></main>

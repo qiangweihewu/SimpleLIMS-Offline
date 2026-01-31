@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,19 +8,28 @@ import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, Search, Printer, Download, Eye, Calendar, Loader2 } from 'lucide-react';
 import { useSamples } from '@/hooks/use-samples';
+import { getPatientNameFromObject } from '@/lib/utils';
+import { ReportExportModal } from '@/components/reports/ReportExportModal';
+import { ReportPrintView } from '@/components/reports/ReportPrintView';
+import { reportService } from '@/services/database.service';
 
 export function ReportsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { samples, loading } = useSamples();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSampleId, setSelectedSampleId] = useState<number | null>(null);
+  const [reportData, setReportData] = useState<any>(null);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [printViewOpen, setPrintViewOpen] = useState(false);
 
   // Filter for completed samples (which are "reports" candidates)
   const completedSamples = useMemo(() => samples.filter(s => s.status === 'completed'), [samples]);
-  
-  const filteredReports = useMemo(() => completedSamples.filter(r => 
-    r.sample_id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (r.last_name + r.first_name).includes(searchTerm)
-  ), [completedSamples, searchTerm]);
+
+  const filteredReports = useMemo(() => completedSamples.filter(r =>
+    r.sample_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    getPatientNameFromObject(r, i18n.language).includes(searchTerm)
+  ), [completedSamples, searchTerm, i18n.language]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -54,6 +64,32 @@ export function ReportsPage() {
     }
   };
 
+  const handleExportClick = async (sampleId: number) => {
+    try {
+      const data = await reportService.getReportData(sampleId);
+      if (data) {
+        setReportData(data);
+        setSelectedSampleId(sampleId);
+        setExportModalOpen(true);
+      }
+    } catch (error) {
+      console.error('Failed to load report:', error);
+    }
+  };
+
+  const handlePrintClick = async (sampleId: number) => {
+    try {
+      const data = await reportService.getReportData(sampleId);
+      if (data) {
+        setReportData(data);
+        setSelectedSampleId(sampleId);
+        setPrintViewOpen(true);
+      }
+    } catch (error) {
+      console.error('Failed to load report:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold text-gray-900">{t('reports.title')}</h1><p className="text-gray-500">{t('reports.subtitle')}</p></div>
@@ -76,7 +112,7 @@ export function ReportsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-             <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
+            <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
           ) : (
             <Table>
               <TableHeader>
@@ -100,15 +136,15 @@ export function ReportsPage() {
                   filteredReports.map((report) => (
                     <TableRow key={report.id}>
                       <TableCell className="font-mono">{report.sample_id}</TableCell>
-                      <TableCell className="font-medium">{report.last_name}{report.first_name}</TableCell>
+                      <TableCell className="font-medium">{getPatientNameFromObject(report, i18n.language)}</TableCell>
                       <TableCell>{report.tests || '-'}</TableCell>
                       <TableCell><Badge variant={getStatusVariant(report.status)}>{getStatusLabel(report.status)}</Badge></TableCell>
                       <TableCell>{new Date(report.updated_at).toLocaleString()}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon"><Download className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon"><Printer className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => navigate(`/reports/${report.id}`)} title={t('reports.table.view', 'View')}><Eye className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleExportClick(report.id)} title={t('reports.table.export', 'Export')}><Download className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handlePrintClick(report.id)} title={t('reports.table.print', 'Print')}><Printer className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -119,6 +155,26 @@ export function ReportsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Export Modal */}
+      <ReportExportModal
+        reportData={reportData}
+        isOpen={exportModalOpen}
+        onClose={() => {
+          setExportModalOpen(false);
+          setReportData(null);
+        }}
+      />
+
+      {/* Print View */}
+      <ReportPrintView
+        reportData={reportData}
+        isOpen={printViewOpen}
+        onClose={() => {
+          setPrintViewOpen(false);
+          setReportData(null);
+        }}
+      />
     </div>
   );
 }

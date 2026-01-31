@@ -93,7 +93,10 @@
     },
     "actions": {
       "order": "طلب"
-    }
+    },
+    "custom_patient_id": "استخدام معرف مريض مخصص",
+    "custom_patient_id_placeholder": "مثال: P001",
+    "id_exists_error": "المعرف موجود بالفعل"
   },
   "samples": {
     "title": "إدارة العينات",
@@ -155,7 +158,10 @@
       "select_tests": "يرجى اختيار اختبارات",
       "success": "تم إنشاء العينة {{id}} بنجاح",
       "error": "فشل الإنشاء، يرجى إعادة المحاولة"
-    }
+    },
+    "custom_sample_id": "استخدام معرف عينة مخصص",
+    "custom_sample_id_placeholder": "مثال: 23102401",
+    "id_exists_error": "المعرف موجود بالفعل"
   },
   "results": {
     "title": "إدخال النتائج",

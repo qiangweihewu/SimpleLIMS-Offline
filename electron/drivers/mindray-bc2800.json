@@ -1,0 +1,61 @@
+{
+  "id": "mindray-bc2800",
+  "name": "Mindray BC-2800",
+  "manufacturer": "Mindray",
+  "model": "BC-2800",
+  "category": "hematology",
+  "connection": "serial",
+  "protocol": "astm",
+  "serialConfig": {
+    "baudRate": 9600,
+    "dataBits": 8,
+    "stopBits": 1,
+    "parity": "none",
+    "flowControl": false
+  },
+  "testMapping": {
+    "WBC": "WBC",
+    "RBC": "RBC",
+    "HGB": "HGB",
+    "HCT": "HCT",
+    "MCV": "MCV",
+    "MCH": "MCH",
+    "MCHC": "MCHC",
+    "PLT": "PLT",
+    "RDW-SD": "RDW_SD",
+    "RDW-CV": "RDW_CV",
+    "PDW": "PDW",
+    "MPV": "MPV",
+    "P-LCR": "P_LCR",
+    "PCT": "PCT",
+    "LYM%": "LYM_PCT",
+    "MON%": "MON_PCT",
+    "NEU%": "NEU_PCT",
+    "EOS%": "EOS_PCT",
+    "BAS%": "BAS_PCT",
+    "LYM#": "LYM_ABS",
+    "MON#": "MON_ABS",
+    "NEU#": "NEU_ABS",
+    "EOS#": "EOS_ABS",
+    "BAS#": "BAS_ABS"
+  },
+  "protocolOptions": {
+    "astm": {
+      "frameDelimiter": "\r",
+      "recordDelimiter": "\n",
+      "fieldDelimiter": "|",
+      "repeatDelimiter": "\\",
+      "escapeDelimiter": "&",
+      "sendAck": true
+    }
+  },
+  "dataOptions": {
+    "filterHistogram": true,
+    "trimWhitespace": true,
+    "autoMatchSample": true,
+    "resultTimeout": 300
+  },
+  "version": "1.0.0",
+  "description": "Mindray BC-2800 五分类血细胞分析仪驱动",
+  "notes": "国产主流型号，性价比高"
+}

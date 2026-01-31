@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Search, Filter, Eye, Printer, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, Eye, Printer, Loader2, Tag } from 'lucide-react';
 import { useSamples } from '@/hooks/use-samples';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getPatientNameFromObject } from '@/lib/utils';
+import { useBarcodeStore } from '@/stores/barcode-store';
 
 const statusConfig: Record<string, { variant: 'default' | 'success' | 'warning' | 'secondary' }> = {
   registered: { variant: 'secondary' },
@@ -24,17 +25,27 @@ const priorityConfig: Record<string, { className: string }> = {
 };
 
 export function SamplesPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { samples, loading } = useSamples();
+  const { print } = useBarcodeStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const filteredSamples = samples.filter(s => {
-    const patientName = `${s.last_name}${s.first_name}`;
+    const patientName = getPatientNameFromObject(s, i18n.language);
     const matchesSearch = s.sample_id.toLowerCase().includes(searchTerm.toLowerCase()) || patientName.includes(searchTerm);
     const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handlePrintLabel = (sample: any) => {
+    print({
+      sampleId: sample.sample_id,
+      patientName: getPatientNameFromObject(sample, i18n.language),
+      tests: sample.tests || '',
+      date: new Date(sample.collected_at).toLocaleDateString()
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -91,13 +102,16 @@ export function SamplesPage() {
                   filteredSamples.map((sample) => (
                     <TableRow key={sample.id}>
                       <TableCell className="font-mono">{sample.sample_id}</TableCell>
-                      <TableCell className="font-medium">{sample.last_name}{sample.first_name}</TableCell>
+                      <TableCell className="font-medium">{getPatientNameFromObject(sample, i18n.language)}</TableCell>
                       <TableCell>{sample.tests || '-'}</TableCell>
                       <TableCell><span className={priorityConfig[sample.priority]?.className || ''}>{t(`samples.priority.${sample.priority}`)}</span></TableCell>
                       <TableCell><Badge variant={statusConfig[sample.status]?.variant || 'secondary'}>{t(`samples.status_filter.${sample.status}`)}</Badge></TableCell>
                       <TableCell>{formatDate(sample.collected_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handlePrintLabel(sample)} title={t('dashboard.print_barcode') || "Print Label"}>
+                            <Tag className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
                           {sample.status === 'completed' && <Button variant="ghost" size="icon"><Printer className="h-4 w-4" /></Button>}
                         </div>

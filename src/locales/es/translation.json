@@ -93,7 +93,10 @@
     },
     "actions": {
       "order": "Pedido"
-    }
+    },
+    "custom_patient_id": "Usar ID de paciente personalizado",
+    "custom_patient_id_placeholder": "ej. P001",
+    "id_exists_error": "El ID ya existe"
   },
   "samples": {
     "title": "Gestión de Muestras",
@@ -155,7 +158,10 @@
       "select_tests": "Por favor seleccione pruebas",
       "success": "Muestra {{id}} creada exitosamente",
       "error": "Creación fallida, por favor reintente"
-    }
+    },
+    "custom_sample_id": "Usar ID de muestra personalizado",
+    "custom_sample_id_placeholder": "ej. 23102401",
+    "id_exists_error": "El ID ya existe"
   },
   "results": {
     "title": "Entrada de Resultados",

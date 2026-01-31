@@ -1,0 +1,56 @@
+{
+  "id": "sysmex-kx21",
+  "name": "Sysmex KX-21",
+  "manufacturer": "Sysmex",
+  "model": "KX-21",
+  "category": "hematology",
+  "connection": "serial",
+  "protocol": "astm",
+  "serialConfig": {
+    "baudRate": 9600,
+    "dataBits": 8,
+    "stopBits": 1,
+    "parity": "none",
+    "flowControl": false
+  },
+  "testMapping": {
+    "WBC": "WBC",
+    "RBC": "RBC",
+    "HGB": "HGB",
+    "HCT": "HCT",
+    "MCV": "MCV",
+    "MCH": "MCH",
+    "MCHC": "MCHC",
+    "PLT": "PLT",
+    "RDW-SD": "RDW_SD",
+    "RDW-CV": "RDW_CV",
+    "PDW": "PDW",
+    "MPV": "MPV",
+    "P-LCR": "P_LCR",
+    "LYM%": "LYM_PCT",
+    "MXD%": "MXD_PCT",
+    "NEUT%": "NEUT_PCT",
+    "LYM#": "LYM_ABS",
+    "MXD#": "MXD_ABS",
+    "NEUT#": "NEUT_ABS"
+  },
+  "protocolOptions": {
+    "astm": {
+      "frameDelimiter": "\r",
+      "recordDelimiter": "\n",
+      "fieldDelimiter": "|",
+      "repeatDelimiter": "\\",
+      "escapeDelimiter": "&",
+      "sendAck": true
+    }
+  },
+  "dataOptions": {
+    "filterHistogram": true,
+    "trimWhitespace": true,
+    "autoMatchSample": true,
+    "resultTimeout": 300
+  },
+  "version": "1.0.0",
+  "description": "Sysmex KX-21 三分类血细胞分析仪驱动",
+  "notes": "经典型号，支持18项参数"
+}

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Search, Edit, Loader2 } from 'lucide-react';
 import { useTestPanels } from '@/hooks/use-test-panels';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { TestPanel } from '@/services/database.service';
 import { toast } from 'sonner';
@@ -16,13 +16,13 @@ export function TestCatalogPage() {
   const { t } = useTranslation();
   const { testPanels, loading, createPanel, updatePanel, toggleActive } = useTestPanels();
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPanel, setEditingPanel] = useState<TestPanel | null>(null);
 
-  const filteredPanels = testPanels.filter(p => 
-    p.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.name.includes(searchTerm)
+  const filteredPanels = testPanels.filter(p =>
+    p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t(p.name).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getCategoryLabel = (cat: string) => {
@@ -124,14 +124,18 @@ export function TestCatalogPage() {
                 {filteredPanels.map((panel) => (
                   <TableRow key={panel.id}>
                     <TableCell className="font-mono font-medium">{panel.code}</TableCell>
-                    <TableCell className="font-medium">{panel.name}</TableCell>
+                    <TableCell>
+                      <span className="font-medium">
+                        {t(panel.name)}
+                      </span>
+                    </TableCell>
                     <TableCell><span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(panel.category)}`}>{getCategoryLabel(panel.category)}</span></TableCell>
                     <TableCell>{panel.unit}</TableCell>
                     <TableCell>{panel.ref_range_male_low} - {panel.ref_range_male_high}</TableCell>
                     <TableCell>{panel.ref_range_female_low} - {panel.ref_range_female_high}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={panel.is_active ? 'success' : 'secondary'} 
+                      <Badge
+                        variant={panel.is_active ? 'success' : 'secondary'}
                         className="cursor-pointer"
                         onClick={() => handleToggleActive(panel.id, panel.is_active)}
                       >
@@ -148,30 +152,45 @@ export function TestCatalogPage() {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingPanel ? t('catalog.form.title_edit') : t('catalog.form.title_add')}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border border-gray-200 bg-white shadow-lg">
+          <div className="bg-primary px-6 py-4">
+            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              {editingPanel ? t('catalog.form.title_edit') : t('catalog.form.title_add')}
+            </DialogTitle>
+          </div>
+          <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-2"><Label htmlFor="code">{t('catalog.form.code')}</Label><Input id="code" name="code" defaultValue={editingPanel?.code} required /></div>
-              <div className="space-y-2"><Label htmlFor="name">{t('catalog.form.name')}</Label><Input id="name" name="name" defaultValue={editingPanel?.name} required /></div>
-              
-              <div className="space-y-2"><Label htmlFor="category">{t('catalog.form.category')}</Label><Input id="category" name="category" defaultValue={editingPanel?.category || 'hematology'} /></div>
-              <div className="space-y-2"><Label htmlFor="unit">{t('catalog.form.unit')}</Label><Input id="unit" name="unit" defaultValue={editingPanel?.unit} /></div>
-              
-              <div className="col-span-2"><Label>{t('catalog.form.ref_range_male')}</Label></div>
+              <div className="space-y-2"><Label htmlFor="code" className="text-xs font-medium text-gray-700">{t('catalog.form.code')}</Label><Input id="code" name="code" defaultValue={editingPanel?.code} required /></div>
+              <div className="space-y-2"><Label htmlFor="name" className="text-xs font-medium text-gray-700">{t('catalog.form.name')}</Label><Input id="name" name="name" defaultValue={editingPanel ? t(editingPanel.name) : ''} required /></div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-xs font-medium text-gray-700">{t('catalog.form.category')}</Label>
+                <select
+                  id="category"
+                  name="category"
+                  defaultValue={editingPanel?.category || 'hematology'}
+                  className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white"
+                >
+                  <option value="hematology">{t('catalog.categories.hematology')}</option>
+                  <option value="chemistry">{t('catalog.categories.chemistry')}</option>
+                  <option value="immuno">{t('catalog.categories.immuno')}</option>
+                  <option value="other">{t('catalog.categories.other')}</option>
+                </select>
+              </div>
+              <div className="space-y-2"><Label htmlFor="unit" className="text-xs font-medium text-gray-700">{t('catalog.form.unit')}</Label><Input id="unit" name="unit" defaultValue={editingPanel?.unit} /></div>
+
+              <div className="col-span-2 py-1 border-b border-gray-100 mt-2"><Label className="text-sm font-bold text-primary">{t('catalog.form.ref_range_male')}</Label></div>
               <div className="space-y-2"><Label htmlFor="ref_range_male_low" className="text-xs text-gray-500">{t('catalog.form.low')}</Label><Input id="ref_range_male_low" name="ref_range_male_low" type="number" step="0.01" defaultValue={editingPanel?.ref_range_male_low} /></div>
               <div className="space-y-2"><Label htmlFor="ref_range_male_high" className="text-xs text-gray-500">{t('catalog.form.high')}</Label><Input id="ref_range_male_high" name="ref_range_male_high" type="number" step="0.01" defaultValue={editingPanel?.ref_range_male_high} /></div>
 
-              <div className="col-span-2"><Label>{t('catalog.form.ref_range_female')}</Label></div>
+              <div className="col-span-2 py-1 border-b border-gray-100 mt-2"><Label className="text-sm font-bold text-primary">{t('catalog.form.ref_range_female')}</Label></div>
               <div className="space-y-2"><Label htmlFor="ref_range_female_low" className="text-xs text-gray-500">{t('catalog.form.low')}</Label><Input id="ref_range_female_low" name="ref_range_female_low" type="number" step="0.01" defaultValue={editingPanel?.ref_range_female_low} /></div>
               <div className="space-y-2"><Label htmlFor="ref_range_female_high" className="text-xs text-gray-500">{t('catalog.form.high')}</Label><Input id="ref_range_female_high" name="ref_range_female_high" type="number" step="0.01" defaultValue={editingPanel?.ref_range_female_high} /></div>
-              
-              <div className="space-y-2"><Label htmlFor="sort_order">{t('catalog.form.sort')}</Label><Input id="sort_order" name="sort_order" type="number" defaultValue={editingPanel?.sort_order || 0} /></div>
-              <div className="space-y-2"><Label htmlFor="decimal_places">{t('catalog.form.decimals')}</Label><Input id="decimal_places" name="decimal_places" type="number" defaultValue={editingPanel?.decimal_places || 0} /></div>
+
+              <div className="space-y-2 mt-2"><Label htmlFor="sort_order" className="text-xs font-medium text-gray-700">{t('catalog.form.sort')}</Label><Input id="sort_order" name="sort_order" type="number" defaultValue={editingPanel?.sort_order || 0} /></div>
+              <div className="space-y-2 mt-2"><Label htmlFor="decimal_places" className="text-xs font-medium text-gray-700">{t('catalog.form.decimals')}</Label><Input id="decimal_places" name="decimal_places" type="number" defaultValue={editingPanel?.decimal_places || 0} /></div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-4 border-t border-gray-100">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>
               <Button type="submit">{t('common.save')}</Button>
             </DialogFooter>

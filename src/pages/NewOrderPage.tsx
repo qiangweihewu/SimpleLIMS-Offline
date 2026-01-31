@@ -6,34 +6,40 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { ArrowLeft, Search, Check, Plus, Loader2 } from 'lucide-react';
-import { cn, generateId } from '@/lib/utils';
+import { ArrowLeft, Search, Check, Plus, Loader2, Package } from 'lucide-react';
+import { cn, generateId, getPatientNameFromObject } from '@/lib/utils';
 import { toast } from 'sonner';
 import { usePatients } from '@/hooks/use-patients';
 import { useTestPanels } from '@/hooks/use-test-panels';
+import { useTestPackages } from '@/hooks/use-test-packages';
 import { sampleService, orderService } from '@/services/database.service';
 
 export function NewOrderPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialPatientId = searchParams.get('patient');
-  
+
   const { patients, searchPatients, loading: patientsLoading } = usePatients();
   const { testPanels, loading: panelsLoading } = useTestPanels();
-  
+  const { testPackages, loading: packagesLoading } = useTestPackages();
+
   const [selectedPatient, setSelectedPatient] = useState<number | null>(initialPatientId ? parseInt(initialPatientId) : null);
   const [patientSearch, setPatientSearch] = useState('');
   const [selectedPanelIds, setSelectedPanelIds] = useState<number[]>([]);
-  const [priority, setPriority] = useState('normal');
+  const [priority, setPriority] = useState<string>('normal');
+  const [sampleType, setSampleType] = useState<string>('blood');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useCustomSampleId, setUseCustomSampleId] = useState(false);
+  const [customSampleId, setCustomSampleId] = useState('');
+  const [sampleIdError, setSampleIdError] = useState('');
 
   // Filter patients based on search
   const filteredPatients = useMemo(() => {
     if (!patientSearch) return patients.slice(0, 10); // Show first 10 if no search
-    return patients.filter(p => 
-      p.patient_id.toLowerCase().includes(patientSearch.toLowerCase()) || 
-      `${p.last_name}${p.first_name}`.includes(patientSearch)
+    return patients.filter(p =>
+      p.patient_id.toLowerCase().includes(patientSearch.toLowerCase()) ||
+      getPatientNameFromObject(p, i18n.language).includes(patientSearch)
     );
   }, [patients, patientSearch]);
 
@@ -50,9 +56,17 @@ export function NewOrderPage() {
   const selectedPatientData = patients.find(p => p.id === selectedPatient);
 
   const togglePanel = (id: number) => {
-    setSelectedPanelIds(prev => 
+    setSelectedPanelIds(prev =>
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     );
+  };
+
+  const selectPackage = (panelIds: number[]) => {
+    setSelectedPanelIds(prev => {
+      const newIds = new Set(prev);
+      panelIds.forEach(id => newIds.add(id));
+      return Array.from(newIds);
+    });
   };
 
   const handlePatientSearch = (term: string) => {
@@ -60,34 +74,57 @@ export function NewOrderPage() {
     searchPatients(term);
   };
 
+  const handleCustomSampleIdChange = async (value: string) => {
+    setCustomSampleId(value);
+    setSampleIdError('');
+    if (value.trim()) {
+      const exists = await sampleService.checkIdExists(value.trim());
+      if (exists) {
+        setSampleIdError(t('orders.id_exists_error'));
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedPatient) { toast.error(t('orders.messages.select_patient')); return; }
     if (selectedPanelIds.length === 0) { toast.error(t('orders.messages.select_tests')); return; }
-    
+    if (useCustomSampleId && !customSampleId.trim()) { toast.error(t('orders.messages.select_tests')); return; }
+    if (useCustomSampleId && sampleIdError) { toast.error(sampleIdError); return; }
+
     try {
       setIsSubmitting(true);
-      
-      const sampleId = generateId('S');
-      
+
+      const sampleId = useCustomSampleId ? customSampleId.trim() : generateId('S');
+
+      if (useCustomSampleId) {
+        const exists = await sampleService.checkIdExists(sampleId);
+        if (exists) {
+          setSampleIdError(t('orders.id_exists_error'));
+          toast.error(t('orders.id_exists_error'));
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // 1. Create Sample
       const sampleResult = await sampleService.create({
         patient_id: selectedPatient,
         sample_id: sampleId,
-        sample_type: 'blood', // Default for now
+        sample_type: sampleType,
         priority,
       });
-      
+
       if (!sampleResult.lastInsertRowid) throw new Error('Failed to create sample');
-      
+
       // 2. Create Orders
       await orderService.createOrders(
         sampleResult.lastInsertRowid as number,
         selectedPanelIds
       );
-      
+
       toast.success(t('orders.messages.success', { id: sampleId }));
       navigate('/samples');
-      
+
     } catch (error) {
       console.error('Failed to create order:', error);
       toast.error(t('orders.messages.error'));
@@ -105,18 +142,20 @@ export function NewOrderPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1 h-fit">
-          <CardHeader><CardTitle>{t('orders.steps.patient')}</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">1. {t('orders.steps.select_patient')}</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder={t('orders.search_patient')} 
-                value={patientSearch} 
-                onChange={(e) => handlePatientSearch(e.target.value)} 
-                className="pl-10" 
+              <Input
+                placeholder={t('orders.search_patient')}
+                value={patientSearch}
+                onChange={(e) => handlePatientSearch(e.target.value)}
+                className="pl-10"
               />
             </div>
-            
+
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {patientsLoading ? (
                 <div className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin text-gray-400" /></div>
@@ -124,17 +163,17 @@ export function NewOrderPage() {
                 <div className="text-center p-4 text-gray-500">{t('orders.no_patient_found')}</div>
               ) : (
                 filteredPatients.map(p => (
-                  <div 
-                    key={p.id} 
+                  <div
+                    key={p.id}
                     className={cn(
-                      'p-3 border rounded-lg cursor-pointer transition-colors', 
+                      'p-3 border rounded-lg cursor-pointer transition-colors',
                       selectedPatient === p.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
-                    )} 
+                    )}
                     onClick={() => setSelectedPatient(p.id)}
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">{p.last_name}{p.first_name}</p>
+                        <p className="font-medium">{getPatientNameFromObject(p, i18n.language)}</p>
                         <p className="text-xs text-gray-500">{p.patient_id}</p>
                       </div>
                       {selectedPatient === p.id && <Check className="h-5 w-5 text-blue-500" />}
@@ -143,33 +182,67 @@ export function NewOrderPage() {
                 ))
               )}
             </div>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/patients')}><Plus className="h-4 w-4 mr-2" />{t('orders.add_patient')}</Button>
+            <div className="pt-4 mt-4 border-t">
+              <Button variant="outline" className="w-full" onClick={() => navigate('/patients')}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t('orders.add_patient')}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-1 h-fit">
-          <CardHeader><CardTitle>{t('orders.steps.tests')}</CardTitle></CardHeader>
+        <Card className="flex flex-col h-full">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">2. {t('orders.steps.select_tests')}</CardTitle>
+          </CardHeader>
           <CardContent>
-            {panelsLoading ? (
+            {panelsLoading || packagesLoading ? (
               <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
             ) : (
               <div className="space-y-6">
+                {testPackages.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-2 uppercase flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      {t('orders.quick_packages')}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {testPackages.map(pkg => (
+                        <div
+                          key={pkg.id}
+                          className="p-3 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-500 transition-colors"
+                          onClick={() => selectPackage(pkg.panel_ids)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Package className="h-4 w-4 text-blue-500" />
+                            <div>
+                              <p className="font-medium text-sm">{t(pkg.name)}</p>
+                              <p className="text-xs text-gray-500">
+                                {t('orders.package_includes', { tests: pkg.panel_codes.join(', ') })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {Object.entries(panelsByCategory).map(([category, panels]) => (
                   <div key={category}>
-                    <h3 className="text-sm font-medium text-gray-500 mb-2 uppercase">{category}</h3>
+                    <h3 className="text-sm font-medium text-gray-500 mb-2 uppercase">{t(`catalog.categories.${category}`) || category}</h3>
                     <div className="space-y-2">
                       {panels.map(panel => (
-                        <div 
-                          key={panel.id} 
+                        <div
+                          key={panel.id}
                           className={cn(
-                            'p-3 border rounded-lg cursor-pointer transition-colors', 
+                            'p-3 border rounded-lg cursor-pointer transition-colors',
                             selectedPanelIds.includes(panel.id) ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
-                          )} 
+                          )}
                           onClick={() => togglePanel(panel.id)}
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium">{panel.name}</p>
+                              <p className="font-medium">{t(panel.name)}</p>
                               <p className="text-xs text-gray-500">{panel.code}</p>
                             </div>
                             {selectedPanelIds.includes(panel.id) && <Check className="h-5 w-5 text-blue-500" />}
@@ -185,7 +258,9 @@ export function NewOrderPage() {
         </Card>
 
         <Card className="lg:col-span-1 h-fit sticky top-6">
-          <CardHeader><CardTitle>{t('orders.steps.confirm')}</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">3. {t('orders.steps.confirm_order')}</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>{t('orders.priority')}</Label>
@@ -195,14 +270,54 @@ export function NewOrderPage() {
                 <option value="stat">{t('samples.priority.stat')}</option>
               </Select>
             </div>
-            
+            <div className="space-y-2">
+              <Label>{t('samples.table.type')}</Label>
+              <Select value={sampleType} onChange={(e) => setSampleType(e.target.value)}>
+                <option value="blood">{t('samples.type.blood')}</option>
+                <option value="serum">{t('samples.type.serum')}</option>
+                <option value="plasma">{t('samples.type.plasma')}</option>
+                <option value="urine">{t('samples.type.urine')}</option>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useCustomSampleId}
+                  onChange={(e) => {
+                    setUseCustomSampleId(e.target.checked);
+                    if (!e.target.checked) {
+                      setCustomSampleId('');
+                      setSampleIdError('');
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <span className="text-sm">{t('orders.custom_sample_id')}</span>
+              </label>
+              {useCustomSampleId && (
+                <div className="space-y-1">
+                  <Input
+                    placeholder={t('orders.custom_sample_id_placeholder')}
+                    value={customSampleId}
+                    onChange={(e) => handleCustomSampleIdChange(e.target.value)}
+                    className={sampleIdError ? 'border-red-500' : ''}
+                  />
+                  {sampleIdError && (
+                    <p className="text-xs text-red-500">{sampleIdError}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="pt-4 border-t">
               <p className="text-sm text-gray-500 mb-2">{t('orders.summary.title')}</p>
               <div className="bg-gray-50 rounded-lg p-3 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">{t('orders.summary.patient')}</span>
                   <span className="font-medium">
-                    {selectedPatientData ? `${selectedPatientData.last_name}${selectedPatientData.first_name}` : '-'}
+                    {selectedPatientData ? getPatientNameFromObject(selectedPatientData, i18n.language) : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -211,10 +326,10 @@ export function NewOrderPage() {
                 </div>
               </div>
             </div>
-            
-            <Button 
-              className="w-full" 
-              onClick={handleSubmit} 
+
+            <Button
+              className="w-full"
+              onClick={handleSubmit}
               disabled={!selectedPatient || selectedPanelIds.length === 0 || isSubmitting}
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
