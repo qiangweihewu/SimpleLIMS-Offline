@@ -27,6 +27,28 @@ export interface ElectronAPI {
     simulate: (portPath: string, type?: string) => Promise<boolean>;
   };
 
+  video: {
+    listDevices: () => Promise<VideoDevice[]>;
+    startPreview: (config: CaptureConfig) => Promise<string>;
+    stopPreview: (devicePath: string) => Promise<void>;
+    capture: (config: CaptureConfig, patientId?: string) => Promise<CapturedImage>;
+    startRecording: (config: CaptureConfig, patientId?: string, duration?: number) => Promise<RecordingSession>;
+    stopRecording: (sessionId: string) => Promise<string>;
+    saveWebRecording: (buffer: ArrayBuffer, patientId: string, format?: string) => Promise<CapturedImage>;
+    getCaptures: (patientId?: string) => Promise<CapturedImage[]>;
+  };
+
+  dicom: {
+    wrap: (imagePath: string, patient: DicomPatient, study: DicomStudy) => Promise<string>;
+    list: (patientId?: string) => Promise<DicomFile[]>;
+  };
+
+  orthanc: {
+    test: () => Promise<{ success: boolean; error?: string }>;
+    upload: (filePath: string) => Promise<{ success: boolean; instanceId?: string; error?: string }>;
+    search: (query: any) => Promise<any[]>;
+  };
+
   file: {
     selectFolder: () => Promise<string | null>;
     selectFile: (filters?: FileFilter[]) => Promise<string | null>;
@@ -75,6 +97,16 @@ export interface ElectronAPI {
     update: (data: any) => Promise<{ success: boolean; error?: string }>;
     toggleActive: (id: number, isActive: boolean) => Promise<{ success: boolean; error?: string }>;
     delete: (id: number) => Promise<{ success: boolean; error?: string }>;
+  };
+
+  debug: {
+    testProtocol: (testPath?: string) => Promise<{
+      success: boolean;
+      testPath?: string;
+      exists?: boolean;
+      protocolUrl?: string;
+      error?: string;
+    }>;
   };
 }
 
@@ -156,6 +188,65 @@ export interface InstrumentStatus {
 export interface FileFilter {
   name: string;
   extensions: string[];
+}
+
+export interface VideoDevice {
+  id: string;
+  name: string;
+  path: string;
+  type: 'camera' | 'capture_card' | 'virtual';
+  capabilities?: {
+    resolutions?: string[];
+    formats?: string[];
+  };
+}
+
+export interface CaptureConfig {
+  devicePath: string;
+  resolution?: string;
+  format?: string;
+  quality?: number;
+}
+
+export interface CapturedImage {
+  id: string;
+  path: string;
+  patientId?: string;
+  instrumentId?: number;
+  capturedAt: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface RecordingSession {
+  id: string;
+  devicePath: string;
+  outputPath: string;
+  startedAt: Date;
+  status: 'recording' | 'stopped' | 'error';
+}
+
+export interface DicomPatient {
+  patientId: string;
+  name: string;
+}
+
+export interface DicomStudy {
+  modality: string;
+  studyDescription?: string;
+}
+
+export interface DicomFile {
+  id: string;
+  path: string;
+  sopInstanceUid: string;
+  studyInstanceUid: string;
+  seriesInstanceUid: string;
+  modality: string;
+  patientId?: string;
+  patientName?: string;
+  studyDate?: string;
+  studyDescription?: string;
+  createdAt: string;
 }
 
 export interface LicenseStatus {

@@ -29,7 +29,9 @@
     "actions": "الإجراءات",
     "success": "نجاح",
     "error": "خطأ",
-    "confirm": "تأكيد"
+    "confirm": "تأكيد",
+    "active": "نشط",
+    "inactive": "غير نشط"
   },
   "dashboard": {
     "welcome": "مرحباً بعودتك",
@@ -88,8 +90,7 @@
     },
     "gender": {
       "male": "ذكر",
-      "female": "أنثى",
-      "other": "آخر"
+      "female": "أنثى"
     },
     "actions": {
       "order": "طلب"
@@ -329,12 +330,12 @@
       "add_user": "إضافة مستخدم"
     },
     "messages": {
-        "backup_location": "يرجى اختيار موقع النسخ الاحتياطي...",
-        "backup_success": "نجح النسخ الاحتياطي لقاعدة البيانات",
-        "backup_failed": "فشل النسخ الاحتياطي",
-        "restore_confirm": "استعادة قاعدة البيانات؟ سيتم استبدال البيانات الحالية.",
-        "restore_success": "نجحت الاستعادة، يرجى إعادة تشغيل التطبيق",
-        "restore_failed": "فشلت الاستعادة"
+      "backup_location": "يرجى اختيار موقع النسخ الاحتياطي...",
+      "backup_success": "نجح النسخ الاحتياطي لقاعدة البيانات",
+      "backup_failed": "فشل النسخ الاحتياطي",
+      "restore_confirm": "استعادة قاعدة البيانات؟ سيتم استبدال البيانات الحالية.",
+      "restore_success": "نجحت الاستعادة، يرجى إعادة تشغيل التطبيق",
+      "restore_failed": "فشلت الاستعادة"
     }
   },
   "reports": {
@@ -400,6 +401,43 @@
     "messages": {
       "create_success": "تم الإنشاء بنجاح",
       "update_success": "تم التحديث بنجاح"
+    }
+  },
+  "sync": {
+    "title": "مزامنة البيانات والتكامل",
+    "subtitle": "تكوين اتصالات الأنظمة الخارجية",
+    "cloud_sync": "مزامنة سحابية",
+    "dhis2": "تكامل DHIS2",
+    "openmrs": "تكامل OpenMRS",
+    "server_url": "رابط الخادم",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "enable": "تفعيل التكامل",
+    "test_connection": "اختبار الاتصال",
+    "save_config": "حفظ التكوين",
+    "export_offline": "تصدير حزمة غير متصلة",
+    "import_offline": "استيراد حزمة غير متصلة",
+    "manual_sync": "مزامنة الآن",
+    "last_sync": "آخر مزامنة",
+    "org_unit_id": "معرف وحدة التنظيم",
+    "dataset_id": "معرف مجموعة البيانات",
+    "status": "الحالة",
+    "online_sync": "مزامنة عبر الإنترنت",
+    "offline_transfer": "نقل غير متصل",
+    "offline_transfer_desc": "نقل البيانات بين المواقع عبر ملف مشفر.",
+    "messages": {
+      "save_success": "تم حفظ التكوين",
+      "save_failed": "فشل حفظ التكوين",
+      "export_success": "تم تصدير الحزمة إلى {{path}}",
+      "export_failed": "فشل التصدير",
+      "import_success": "تم استيراد الحزمة. تم تحديث {{count}} سجل.",
+      "import_failed": "فشل الاستيراد",
+      "sync_success": "اكتملت المزامنة بنجاح",
+      "sync_failed": "فشل المزامنة",
+      "connection_success": "تم الاتصال بنجاح",
+      "connection_failed": "فشل الاتصال",
+      "patient_found": "تم العثور على المريض: {{id}}",
+      "no_patient_found": "لم يتم العثور على مريض بالمعرف 1001 (الاتصال جيد)"
     }
   }
 }

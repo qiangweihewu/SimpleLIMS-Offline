@@ -25,6 +25,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage').then(module => ({ defau
 const SetupPage = lazy(() => import('./pages/SetupPage').then(module => ({ default: module.SetupPage })));
 const UserManagementPage = lazy(() => import('./pages/UserManagementPage').then(module => ({ default: module.UserManagementPage })));
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage').then(module => ({ default: module.AuditLogPage })));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then(module => ({ default: module.FeedbackPage })));
 
 function RequireAuth() {
   const { isAuthenticated } = useAuth();
@@ -72,6 +73,7 @@ function AppContent() {
               <Route path="/unmatched" element={<UnmatchedDataPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/reports/:sampleId" element={<ReportPreviewPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>

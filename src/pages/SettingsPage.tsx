@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useSettings, type LabSettings, type BackupSettings } from '@/hooks/use-settings';
 
 import { UserManagementPanel } from '@/components/users/UserManagementPanel';
+import { DataSyncPanel } from '@/components/settings/DataSyncPanel';
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -306,6 +307,9 @@ export function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Data Sync & Integrations */}
+            <DataSyncPanel />
 
             <Card>
               <CardHeader>

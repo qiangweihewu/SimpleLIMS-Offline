@@ -5,6 +5,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "new_order": "New Order",
     "patients": "Patients",
     "samples": "Samples",
     "orders": "New Order",
@@ -21,6 +22,8 @@
   "common": {
     "loading": "Loading...",
     "save": "Save",
+    "select_all": "Select All",
+    "clear_all": "Clear All",
     "cancel": "Cancel",
     "select": "Select",
     "save_config": "Save Configuration",
@@ -51,7 +54,44 @@
     "saved_success": "Saved successfully",
     "confirm_delete": "Are you sure you want to delete?",
     "deleted_success": "Deleted successfully",
-    "add": "Add"
+    "add": "Add",
+    "active": "Active",
+    "inactive": "Inactive",
+    "confirm_restart_msg": "Are you sure you want to restart the application?",
+    "confirm_quit_msg": "Are you sure you want to quit the application?"
+  },
+  "feedback": {
+    "title": "Feedback & Support",
+    "type": {
+      "label": "Feedback Type",
+      "bug": "Bug Report",
+      "feature": "Feature Request",
+      "other": "Other"
+    },
+    "content": {
+      "label": "Full Description",
+      "placeholder": "Help us improve by telling us more about your feedback..."
+    },
+    "contact": {
+      "label": "Your Email (Optional)",
+      "placeholder": "We might contact you for more details"
+    },
+    "status": {
+      "online": "Connected: Directly submit feedback",
+      "offline": "Offline: Export PDF to send by email"
+    },
+    "submit": "Submit Feedback Now",
+    "export": "Export PDF & Email Support",
+    "success": "Thank you! Your feedback has been sent.",
+    "export_success": "Feedback PDF saved! Please send it to support@simplelabos.com",
+    "email_subject": "Feedback from SimpleLIMS Offline User",
+    "images": {
+      "label": "Attachments (Images)",
+      "limit_error": "File size exceeds 10MB limit.",
+      "placeholder": "Click or drag to upload images",
+      "remove": "Remove image",
+      "offline_reminder": "Note: In offline mode, please manually attach your selected images to the email along with the exported PDF."
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -111,7 +151,8 @@
       "placeholder": {
         "last_name": "Ex: Smith",
         "first_name": "Ex: John",
-        "address": "Full residential address"
+        "address": "Full residential address",
+        "gender": "Select gender"
       }
     },
     "table": {
@@ -124,8 +165,7 @@
     },
     "gender": {
       "male": "Male",
-      "female": "Female",
-      "other": "Other"
+      "female": "Female"
     },
     "actions": {
       "order": "Order"
@@ -137,7 +177,16 @@
       "not_found": "Patient Not Found",
       "notes": "Notes",
       "years_old": "years"
-    }
+    },
+    "details": {
+      "title": "Patient Details"
+    },
+    "search_results": "Search Results",
+    "export_success": "Export successful",
+    "export_failed": "Export failed",
+    "export_no_data": "No data to export",
+    "import_success": "Successfully imported {{count}} records",
+    "import_failed": "Import failed, please check file format"
   },
   "samples": {
     "title": "Sample Management",
@@ -213,7 +262,14 @@
     },
     "custom_sample_id": "Use custom sample ID",
     "custom_sample_id_placeholder": "e.g. 23102401",
-    "id_exists_error": "ID already exists"
+    "id_exists_error": "ID already exists",
+    "select_patient_desc": "Select a patient from the list below",
+    "register_helper": "Please register a new patient using the button on the right.",
+    "patient_not_found_helper": "Patient not in the list?",
+    "patient_selected": "Patient Selected",
+    "please_select_patient": "Please select a patient",
+    "selected_count": "Selected Count",
+    "confirm_desc": "Please review all information before creating the order"
   },
   "results": {
     "title": "Result Entry",
@@ -614,6 +670,12 @@
       "hematology": "Hematology",
       "chemistry": "Chemistry",
       "immuno": "Immunology",
+      "electrolytes": "Electrolytes",
+      "coagulation": "Coagulation",
+      "urinalysis": "Urinalysis",
+      "immunoassay": "Immunoassay",
+      "imaging": "Imaging",
+      "monitoring": "Monitoring",
       "other": "Other"
     },
     "items": {
@@ -640,7 +702,56 @@
       "TG": "Triglycerides",
       "HDL": "HDL Cholesterol",
       "LDL": "LDL Cholesterol",
-      "HbA1c": "Hemoglobin A1c"
+      "HbA1c": "Hemoglobin A1c",
+      "Na": "Sodium",
+      "K": "Potassium",
+      "Cl": "Chloride",
+      "Ca": "Calcium",
+      "PHOS": "Phosphorus",
+      "Mg": "Magnesium",
+      "PT": "Prothrombin Time",
+      "APTT": "Activated Partial Thromboplastin Time",
+      "FIB": "Fibrinogen",
+      "TT": "Thrombin Time",
+      "INR": "INR",
+      "D_Dimer": "D-Dimer",
+      "U_pH": "Urine pH",
+      "U_SG": "Specific Gravity",
+      "U_PRO": "Urine Protein",
+      "U_GLU": "Urine Glucose",
+      "U_KET": "Urine Ketones",
+      "U_BIL": "Urine Bilirubin",
+      "U_UBG": "Urobilinogen",
+      "U_NIT": "Nitrite",
+      "U_LEU": "Leukocytes",
+      "U_BLD": "Urine Blood",
+      "TSH": "Thyroid Stimulating Hormone",
+      "FT3": "Free T3",
+      "FT4": "Free T4",
+      "T3": "Triiodothyronine",
+      "T4": "Thyroxine",
+      "CRP": "C-Reactive Protein",
+      "PCT": "Procalcitonin",
+      "Ferritin": "Ferritin",
+      "VitB12": "Vitamin B12",
+      "Folate": "Folate",
+      "ALP": "Alkaline Phosphatase",
+      "GGT": "Gamma-Glutamyl Transferase",
+      "LDH": "Lactate Dehydrogenase",
+      "CK": "Creatine Kinase",
+      "CK_MB": "CK-MB",
+      "DBIL": "Direct Bilirubin",
+      "IBIL": "Indirect Bilirubin",
+      "AMY": "Amylase",
+      "US": "Ultrasound",
+      "XR": "X-Ray",
+      "ECG": "Electrocardiogram",
+      "HR": "Heart Rate",
+      "SpO2": "SpO2",
+      "BP_SYS": "Systolic BP",
+      "BP_DIA": "Diastolic BP",
+      "RR": "Respiratory Rate",
+      "TEMP": "Temperature"
     },
     "status": {
       "active": "Active",
@@ -695,6 +806,58 @@
     "LIPID": {
       "name": "Lipid Panel",
       "description": "Total Cholesterol, Triglycerides, HDL, LDL"
+    },
+    "ELECTROLYTES": {
+      "name": "Electrolytes Panel",
+      "description": "Na, K, Cl, Ca, PHOS, Mg"
+    },
+    "COAG": {
+      "name": "Coagulation Panel",
+      "description": "PT, APTT, FIB, TT, INR"
+    },
+    "URINE": {
+      "name": "Urinalysis Routine",
+      "description": "Routine urine 10 parameters"
+    },
+    "THYROID": {
+      "name": "Thyroid Function",
+      "description": "TSH, FT3, FT4, T3, T4"
+    },
+    "MYO": {
+      "name": "Myocardial Enzymes",
+      "description": "CK, CK-MB, LDH"
+    },
+    "EXT_LFT": {
+      "name": "Liver Function Expanded",
+      "description": "ALT, AST, TBIL, DBIL, IBIL, ALP, GGT, TP, ALB"
+    },
+    "DIABETES": {
+      "name": "Diabetes Screening",
+      "description": "GLU, HbA1c"
+    },
+    "ANEMIA": {
+      "name": "Anemia Panel",
+      "description": "Ferritin, VitB12, Folate"
+    },
+    "INFECTION": {
+      "name": "Infection Markers",
+      "description": "CRP, PCT"
+    },
+    "PANCREAS": {
+      "name": "Pancreatic Function",
+      "description": "AMY"
+    },
+    "IMAGING_PKG": {
+      "name": "General Imaging",
+      "description": "US, XR"
+    },
+    "ECG_PKG": {
+      "name": "ECG Monitoring",
+      "description": "ECG"
+    },
+    "VITALS": {
+      "name": "Vital Signs Monitoring",
+      "description": "HR, SpO2, BP, RR, TEMP"
     }
   },
   "admin": {
@@ -765,5 +928,42 @@
     "no_mapping": "No preset mapping for this driver. Configure manually after saving.",
     "summary": "Configuration Summary",
     "driver_label": "Driver"
+  },
+  "sync": {
+    "title": "Data Sync & Integrations",
+    "subtitle": "Configure external system connections",
+    "cloud_sync": "Cloud Sync",
+    "dhis2": "DHIS2 Integration",
+    "openmrs": "OpenMRS Integration",
+    "server_url": "Server URL",
+    "username": "Username",
+    "password": "Password",
+    "enable": "Enable",
+    "test_connection": "Test Connection",
+    "save_config": "Save Configuration",
+    "export_offline": "Export Offline Package",
+    "import_offline": "Import Offline Package",
+    "manual_sync": "Sync Now",
+    "last_sync": "Last Sync",
+    "org_unit_id": "Org Unit ID",
+    "dataset_id": "Dataset ID",
+    "status": "Status",
+    "online_sync": "Online Sync",
+    "offline_transfer": "Offline Transfer",
+    "offline_transfer_desc": "Transfer data between sites via encrypted file.",
+    "messages": {
+      "save_success": "Configuration saved",
+      "save_failed": "Failed to save configuration",
+      "export_success": "Package exported to {{path}}",
+      "export_failed": "Export failed",
+      "import_success": "Package imported. {{count}} records updated.",
+      "import_failed": "Import failed",
+      "sync_success": "Sync completed successfully",
+      "sync_failed": "Sync failed",
+      "connection_success": "Connection successful",
+      "connection_failed": "Connection failed",
+      "patient_found": "Found patient: {{id}}",
+      "no_patient_found": "No patient found with ID 1001 (Connection OK)"
+    }
   }
 }

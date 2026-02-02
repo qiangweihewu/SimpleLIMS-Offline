@@ -1,7 +1,7 @@
 // SimpleLIMS-Offline Database Schema
 // SQLite with WAL mode for concurrent read/write
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 13;
 
 export const CREATE_TABLES_SQL = `
 -- Enable WAL mode for better concurrency
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS patients (
   patient_id TEXT NOT NULL UNIQUE, -- External ID (e.g., P-20260129-001)
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
-  gender TEXT NOT NULL CHECK (gender IN ('male', 'female', 'other')),
+  gender TEXT NOT NULL CHECK (gender IN ('male', 'female')),
   date_of_birth TEXT NOT NULL,
   phone TEXT,
   email TEXT,
@@ -242,7 +242,136 @@ CREATE TABLE IF NOT EXISTS qc_results (
   notes TEXT
 );
 
--- Create indexes for common queries
+-- ============================================
+-- Phase 1: New tables for Legacy Device Integration
+-- ============================================
+
+-- Device Traffic Log (Raw byte stream forensic logging)
+CREATE TABLE IF NOT EXISTS device_traffic_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  instrument_id INTEGER REFERENCES instruments(id),
+  direction TEXT NOT NULL CHECK (direction IN ('rx', 'tx')),
+  raw_bytes BLOB NOT NULL,
+  hex_dump TEXT,
+  receipt_timestamp TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Data Quality History (Historical quality metrics)
+CREATE TABLE IF NOT EXISTS data_quality_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  instrument_id INTEGER NOT NULL REFERENCES instruments(id),
+  total_packets INTEGER NOT NULL DEFAULT 0,
+  successful_packets INTEGER NOT NULL DEFAULT 0,
+  failed_packets INTEGER NOT NULL DEFAULT 0,
+  checksum_errors INTEGER NOT NULL DEFAULT 0,
+  packet_loss_rate REAL,
+  checksum_error_rate REAL,
+  data_completeness REAL,
+  window_start TEXT NOT NULL,
+  window_end TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Device Lifecycle Events (Full lifecycle tracking)
+CREATE TABLE IF NOT EXISTS device_lifecycle (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  instrument_id INTEGER NOT NULL REFERENCES instruments(id),
+  event_type TEXT NOT NULL CHECK (event_type IN ('purchase', 'install', 'calibration', 'maintenance', 'repair', 'upgrade', 'decommission')),
+  event_date TEXT NOT NULL,
+  description TEXT,
+  cost REAL,
+  performed_by TEXT,
+  next_due_date TEXT,
+  attachments TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- FHIR Resources (Semantic interoperability layer)
+CREATE TABLE IF NOT EXISTS fhir_resources (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  resource_type TEXT NOT NULL,
+  resource_id TEXT NOT NULL UNIQUE,
+  resource_json TEXT NOT NULL,
+  source_result_id INTEGER REFERENCES results(id),
+  source_instrument_id INTEGER REFERENCES instruments(id),
+  loinc_code TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  synced_at TEXT
+);
+
+-- Predictive Maintenance Scores (Health tracking)
+CREATE TABLE IF NOT EXISTS predictive_maintenance_scores (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  instrument_id INTEGER NOT NULL REFERENCES instruments(id),
+  overall_score REAL NOT NULL,
+  communication_health REAL,
+  calibration_status REAL,
+  maintenance_compliance REAL,
+  usage_pattern REAL,
+  risk_level TEXT NOT NULL CHECK (risk_level IN ('low', 'medium', 'high', 'critical')),
+  recommendations TEXT,
+  predicted_issues TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================
+-- Phase 5: Imaging Device Support
+-- ============================================
+
+-- Captured Images (from video capture devices)
+CREATE TABLE IF NOT EXISTS captured_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  capture_id TEXT NOT NULL UNIQUE,
+  file_path TEXT NOT NULL,
+  patient_id INTEGER REFERENCES patients(id),
+  instrument_id INTEGER REFERENCES instruments(id),
+  device_path TEXT,
+  resolution TEXT,
+  format TEXT,
+  file_size INTEGER,
+  metadata TEXT,
+  captured_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- DICOM Files (wrapped images/videos)
+CREATE TABLE IF NOT EXISTS dicom_files (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  file_path TEXT NOT NULL,
+  sop_instance_uid TEXT NOT NULL UNIQUE,
+  study_instance_uid TEXT NOT NULL,
+  series_instance_uid TEXT NOT NULL,
+  modality TEXT NOT NULL,
+  patient_id TEXT,
+  patient_name TEXT,
+  study_date TEXT,
+  study_description TEXT,
+  source_image_id INTEGER REFERENCES captured_images(id),
+  orthanc_instance_id TEXT,
+  file_size INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  uploaded_at TEXT
+);
+
+-- Orthanc Sync Log (PACS upload tracking)
+CREATE TABLE IF NOT EXISTS orthanc_sync_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  dicom_file_id INTEGER NOT NULL REFERENCES dicom_files(id),
+  orthanc_instance_id TEXT,
+  orthanc_study_id TEXT,
+  orthanc_patient_id TEXT,
+  action TEXT NOT NULL CHECK (action IN ('upload', 'delete', 'query')),
+  status TEXT NOT NULL CHECK (status IN ('pending', 'success', 'failed')),
+  error_message TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================
+-- Indexes
+-- ============================================
+
+-- Existing indexes
 CREATE INDEX IF NOT EXISTS idx_patients_patient_id ON patients(patient_id);
 CREATE INDEX IF NOT EXISTS idx_patients_name ON patients(last_name, first_name);
 CREATE INDEX IF NOT EXISTS idx_samples_sample_id ON samples(sample_id);
@@ -256,6 +385,37 @@ CREATE INDEX IF NOT EXISTS idx_results_verified ON results(is_released, verified
 CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_unmatched_status ON unmatched_data(status);
+
+-- New indexes for Phase 1 tables
+CREATE INDEX IF NOT EXISTS idx_traffic_instrument ON device_traffic_log(instrument_id);
+CREATE INDEX IF NOT EXISTS idx_traffic_timestamp ON device_traffic_log(receipt_timestamp);
+CREATE INDEX IF NOT EXISTS idx_traffic_direction ON device_traffic_log(direction);
+CREATE INDEX IF NOT EXISTS idx_quality_instrument ON data_quality_history(instrument_id);
+CREATE INDEX IF NOT EXISTS idx_quality_window ON data_quality_history(window_start);
+CREATE INDEX IF NOT EXISTS idx_lifecycle_instrument ON device_lifecycle(instrument_id);
+CREATE INDEX IF NOT EXISTS idx_lifecycle_event_type ON device_lifecycle(event_type);
+CREATE INDEX IF NOT EXISTS idx_lifecycle_due_date ON device_lifecycle(next_due_date);
+
+-- FHIR Resources indexes
+CREATE INDEX IF NOT EXISTS idx_fhir_resource_type ON fhir_resources(resource_type);
+CREATE INDEX IF NOT EXISTS idx_fhir_resource_id ON fhir_resources(resource_id);
+CREATE INDEX IF NOT EXISTS idx_fhir_loinc ON fhir_resources(loinc_code);
+CREATE INDEX IF NOT EXISTS idx_fhir_source_result ON fhir_resources(source_result_id);
+
+-- Predictive Maintenance indexes
+CREATE INDEX IF NOT EXISTS idx_maintenance_instrument ON predictive_maintenance_scores(instrument_id);
+CREATE INDEX IF NOT EXISTS idx_maintenance_risk ON predictive_maintenance_scores(risk_level);
+
+-- Phase 5: Imaging indexes
+CREATE INDEX IF NOT EXISTS idx_captured_images_capture_id ON captured_images(capture_id);
+CREATE INDEX IF NOT EXISTS idx_captured_images_patient ON captured_images(patient_id);
+CREATE INDEX IF NOT EXISTS idx_captured_images_captured_at ON captured_images(captured_at);
+CREATE INDEX IF NOT EXISTS idx_dicom_sop_uid ON dicom_files(sop_instance_uid);
+CREATE INDEX IF NOT EXISTS idx_dicom_study_uid ON dicom_files(study_instance_uid);
+CREATE INDEX IF NOT EXISTS idx_dicom_patient ON dicom_files(patient_id);
+CREATE INDEX IF NOT EXISTS idx_dicom_modality ON dicom_files(modality);
+CREATE INDEX IF NOT EXISTS idx_orthanc_sync_dicom ON orthanc_sync_log(dicom_file_id);
+CREATE INDEX IF NOT EXISTS idx_orthanc_sync_status ON orthanc_sync_log(status);
 
 -- Insert schema version
 INSERT OR REPLACE INTO schema_version (version) VALUES (${SCHEMA_VERSION});
@@ -325,6 +485,142 @@ WHERE p.code = 'RFT' AND t.code IN ('BUN', 'CREA', 'UA');
 INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
 SELECT p.id, t.id FROM test_packages p, test_panels t 
 WHERE p.code = 'LIPID' AND t.code IN ('TC', 'TG', 'HDL', 'LDL');
+`;
+
+// Additional Panels (Electrolytes, Coagulation, Urinalysis, Immunoassay)
+export const SEED_ADDITIONAL_PANELS_SQL = `
+INSERT OR IGNORE INTO test_panels (code, name, category, unit, ref_range_male_low, ref_range_male_high, ref_range_female_low, ref_range_female_high, decimal_places, sort_order) VALUES
+('Na', 'catalog.items.Na', 'electrolytes', 'mmol/L', 135, 145, 135, 145, 1, 50),
+('K', 'catalog.items.K', 'electrolytes', 'mmol/L', 3.5, 5.5, 3.5, 5.5, 1, 51),
+('Cl', 'catalog.items.Cl', 'electrolytes', 'mmol/L', 96, 106, 96, 106, 1, 52),
+('Ca', 'catalog.items.Ca', 'electrolytes', 'mmol/L', 2.1, 2.6, 2.1, 2.6, 2, 53),
+('PHOS', 'catalog.items.PHOS', 'electrolytes', 'mmol/L', 0.8, 1.5, 0.8, 1.5, 2, 54),
+('Mg', 'catalog.items.Mg', 'electrolytes', 'mmol/L', 0.7, 1.1, 0.7, 1.1, 2, 55),
+('PT', 'catalog.items.PT', 'coagulation', 's', 11, 13.5, 11, 13.5, 1, 60),
+('APTT', 'catalog.items.APTT', 'coagulation', 's', 25, 35, 25, 35, 1, 61),
+('FIB', 'catalog.items.FIB', 'coagulation', 'g/L', 2, 4, 2, 4, 2, 62),
+('TT', 'catalog.items.TT', 'coagulation', 's', 14, 21, 14, 21, 1, 63),
+('INR', 'catalog.items.INR', 'coagulation', '', 0.8, 1.2, 0.8, 1.2, 2, 64),
+('D-Dimer', 'catalog.items.D_Dimer', 'coagulation', 'mg/L FEU', 0, 0.5, 0, 0.5, 2, 65),
+('U-pH', 'catalog.items.U_pH', 'urinalysis', '', 4.5, 8.0, 4.5, 8.0, 1, 70),
+('U-SG', 'catalog.items.U_SG', 'urinalysis', '', 1.005, 1.030, 1.005, 1.030, 3, 71),
+('U-PRO', 'catalog.items.U_PRO', 'urinalysis', 'mg/dL', 0, 0, 0, 0, 0, 72),
+('U-GLU', 'catalog.items.U_GLU', 'urinalysis', 'mmol/L', 0, 0, 0, 0, 0, 73),
+('U-KET', 'catalog.items.U_KET', 'urinalysis', 'mmol/L', 0, 0, 0, 0, 0, 74),
+('U-BIL', 'catalog.items.U_BIL', 'urinalysis', 'μmol/L', 0, 0, 0, 0, 0, 75),
+('U-UBG', 'catalog.items.U_UBG', 'urinalysis', 'μmol/L', 0, 16, 0, 16, 0, 76),
+('U-NIT', 'catalog.items.U_NIT', 'urinalysis', '', 0, 0, 0, 0, 0, 77),
+('U-LEU', 'catalog.items.U_LEU', 'urinalysis', 'cells/μL', 0, 10, 0, 10, 0, 78),
+('U-BLD', 'catalog.items.U_BLD', 'urinalysis', 'cells/μL', 0, 3, 0, 3, 0, 79),
+('TSH', 'catalog.items.TSH', 'immunoassay', 'mIU/L', 0.4, 4.0, 0.4, 4.0, 2, 90),
+('FT3', 'catalog.items.FT3', 'immunoassay', 'pmol/L', 3.1, 6.8, 3.1, 6.8, 2, 91),
+('FT4', 'catalog.items.FT4', 'immunoassay', 'pmol/L', 12, 22, 12, 22, 2, 92),
+('T3', 'catalog.items.T3', 'immunoassay', 'nmol/L', 1.3, 3.1, 1.3, 3.1, 2, 93),
+('T4', 'catalog.items.T4', 'immunoassay', 'nmol/L', 66, 181, 66, 181, 1, 94),
+('CRP', 'catalog.items.CRP', 'immunoassay', 'mg/L', 0, 5, 0, 5, 2, 95),
+('PCT', 'catalog.items.PCT', 'immunoassay', 'ng/mL', 0, 0.5, 0, 0.5, 2, 96),
+('Ferritin', 'catalog.items.Ferritin', 'immunoassay', 'ng/mL', 30, 400, 13, 150, 1, 97),
+('VitB12', 'catalog.items.VitB12', 'immunoassay', 'pg/mL', 200, 900, 200, 900, 0, 98),
+('Folate', 'catalog.items.Folate', 'immunoassay', 'ng/mL', 4, 20, 4, 20, 1, 99),
+('ALP', 'catalog.items.ALP', 'chemistry', 'U/L', 40, 150, 40, 150, 0, 100),
+('GGT', 'catalog.items.GGT', 'chemistry', 'U/L', 10, 60, 7, 35, 0, 101),
+('LDH', 'catalog.items.LDH', 'chemistry', 'U/L', 100, 240, 100, 240, 0, 102),
+('CK', 'catalog.items.CK', 'chemistry', 'U/L', 38, 174, 26, 140, 0, 103),
+('CK-MB', 'catalog.items.CK_MB', 'chemistry', 'U/L', 0, 25, 0, 25, 1, 104),
+('DBIL', 'catalog.items.DBIL', 'chemistry', 'μmol/L', 0, 6.8, 0, 6.8, 1, 105),
+('IBIL', 'catalog.items.IBIL', 'chemistry', 'μmol/L', 3.4, 17.0, 3.4, 17.0, 1, 106),
+('AMY', 'catalog.items.AMY', 'chemistry', 'U/L', 30, 110, 30, 110, 0, 107),
+('US', 'catalog.items.US', 'imaging', '', 0, 0, 0, 0, 0, 110),
+('XR', 'catalog.items.XR', 'imaging', '', 0, 0, 0, 0, 0, 111),
+('ECG', 'catalog.items.ECG', 'monitoring', '', 0, 0, 0, 0, 0, 112),
+('HR', 'catalog.items.HR', 'monitoring', 'bpm', 60, 100, 60, 100, 0, 120),
+('SpO2', 'catalog.items.SpO2', 'monitoring', '%', 95, 100, 95, 100, 0, 121),
+('BP_SYS', 'catalog.items.BP_SYS', 'monitoring', 'mmHg', 90, 140, 90, 140, 0, 122),
+('BP_DIA', 'catalog.items.BP_DIA', 'monitoring', 'mmHg', 60, 90, 60, 90, 0, 123),
+('RR', 'catalog.items.RR', 'monitoring', 'rpm', 12, 20, 12, 20, 0, 124),
+('TEMP', 'catalog.items.TEMP', 'monitoring', '°C', 36.5, 37.5, 36.5, 37.5, 1, 125);
+`;
+
+export const SEED_ADDITIONAL_PACKAGES_SQL = `
+INSERT OR IGNORE INTO test_packages (code, name, description) VALUES
+('ELECTROLYTES', 'packages.ELECTROLYTES.name', 'packages.ELECTROLYTES.description'),
+('COAG', 'packages.COAG.name', 'packages.COAG.description'),
+('URINE', 'packages.URINE.name', 'packages.URINE.description'),
+('THYROID', 'packages.THYROID.name', 'packages.THYROID.description'),
+('MYO', 'packages.MYO.name', 'packages.MYO.description'),
+('EXT_LFT', 'packages.EXT_LFT.name', 'packages.EXT_LFT.description'),
+('DIABETES', 'packages.DIABETES.name', 'packages.DIABETES.description'),
+('ANEMIA', 'packages.ANEMIA.name', 'packages.ANEMIA.description'),
+('INFECTION', 'packages.INFECTION.name', 'packages.INFECTION.description'),
+('PANCREAS', 'packages.PANCREAS.name', 'packages.PANCREAS.description'),
+('IMAGING_PKG', 'packages.IMAGING_PKG.name', 'packages.IMAGING_PKG.description'),
+('ECG_PKG', 'packages.ECG_PKG.name', 'packages.ECG_PKG.description'),
+('VITALS', 'packages.VITALS.name', 'packages.VITALS.description');
+
+-- Electrolytes items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'ELECTROLYTES' AND t.code IN ('Na', 'K', 'Cl', 'Ca', 'PHOS', 'Mg');
+
+-- Coagulation items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'COAG' AND t.code IN ('PT', 'APTT', 'FIB', 'TT', 'INR', 'D-Dimer');
+
+-- Urinalysis items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'URINE' AND t.code IN ('U-pH', 'U-SG', 'U-PRO', 'U-GLU', 'U-KET', 'U-BIL', 'U-UBG', 'U-NIT', 'U-LEU', 'U-BLD');
+
+-- Thyroid items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'THYROID' AND t.code IN ('TSH', 'FT3', 'FT4', 'T3', 'T4');
+
+-- Myocardial Enzymes items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'MYO' AND t.code IN ('CK', 'CK-MB', 'LDH');
+
+-- Extended LFT items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_panels t, test_packages p
+WHERE p.code = 'EXT_LFT' AND t.code IN ('ALT', 'AST', 'TBIL', 'DBIL', 'IBIL', 'ALP', 'GGT', 'TP', 'ALB');
+
+-- Diabetes items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'DIABETES' AND t.code IN ('GLU', 'HbA1c');
+
+-- Anemia items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'ANEMIA' AND t.code IN ('Ferritin', 'VitB12', 'Folate');
+
+-- Infection items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'INFECTION' AND t.code IN ('CRP', 'PCT');
+
+-- Pancreas items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'PANCREAS' AND t.code IN ('AMY');
+
+-- Imaging items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'IMAGING_PKG' AND t.code IN ('US', 'XR');
+
+-- ECG items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'ECG_PKG' AND t.code IN ('ECG');
+
+-- Vitals items
+INSERT OR IGNORE INTO test_package_items (package_id, panel_id)
+SELECT p.id, t.id FROM test_packages p, test_panels t 
+WHERE p.code = 'VITALS' AND t.code IN ('HR', 'SpO2', 'BP_SYS', 'BP_DIA', 'RR', 'TEMP');
 `;
 
 // Default admin user (password: admin123)

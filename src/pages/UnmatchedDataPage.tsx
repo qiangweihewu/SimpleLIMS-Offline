@@ -108,7 +108,10 @@ export function UnmatchedDataPage() {
                         <div className="p-2 bg-gray-50 rounded text-sm font-mono text-gray-600">{preview}</div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm"><Eye className="h-4 w-4 mr-1" />{t('unmatched.view')}</Button>
+                        <Button variant="outline" size="sm" onClick={() => toast.info(`${t('unmatched.raw_id')}: ${item.sample_id_raw || 'N/A'}\n${preview}`)}>
+                          <Eye className="h-4 w-4 mr-1" />
+                          {t('unmatched.view')}
+                        </Button>
                         <Button size="sm" onClick={() => handleClaimClick(item.id)}><Link2 className="h-4 w-4 mr-1" />{t('unmatched.claim')}</Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDiscard(item.id)}><Trash2 className="h-4 w-4" /></Button>
                       </div>

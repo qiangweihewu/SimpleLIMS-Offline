@@ -1,12 +1,17 @@
 /**
  * Serial Port Communication Service
  * Handles RS-232 communication with laboratory instruments
+ * 
+ * Phase 1 Enhancement: Integrated with TrafficLogger, TimeSyncService, and DataQualityMonitor
  */
 
 import { SerialPort } from 'serialport';
 import { EventEmitter } from 'events';
 import { CTRL, parseASTMMessage, verifyChecksum } from './astm-parser.js';
 import { VirtualPort } from './virtual-port.js';
+import { trafficLogger } from './traffic-logger.js';
+import { timeSyncService } from './time-sync-service.js';
+import { dataQualityMonitor } from './data-quality-monitor.js';
 
 export interface SerialConfig {
   path: string;
@@ -215,8 +220,12 @@ export class SerialService extends EventEmitter {
 
   /**
    * Handle incoming data from instrument
+   * Enhanced with traffic logging and receipt timestamp
    */
   private handleIncomingData(connection: InstrumentConnection, data: Buffer) {
+    // Log raw traffic for forensic analysis
+    trafficLogger.logReceive(connection.id, data);
+    
     // Check for control characters
     if (data.includes(CTRL.ENQ)) {
       // Instrument wants to send data - respond with ACK
@@ -285,6 +294,9 @@ export class SerialService extends EventEmitter {
       // Verify checksum
       if (verifyChecksum(frame)) {
         this.sendACK(connection);
+        
+        // Record successful packet for quality monitoring
+        dataQualityMonitor.recordSuccess(connection.id);
 
         // Extract data between STX and ETX/ETB (exclude frame number at start if strict, 
         // but ASTM parser handles the whole line usually? 
@@ -309,6 +321,10 @@ export class SerialService extends EventEmitter {
       } else {
         console.warn(`Checksum failed for frame from ${connection.config.path}`);
         this.sendNAK(connection);
+        
+        // Record checksum error for quality monitoring
+        dataQualityMonitor.recordChecksumError(connection.id);
+        
         // We do NOT discard the frame yet? Or do we?
         // Instrument should retransmit. We should probably accept that we consumed this attempts.
         // Standard says: sending NAK causes retransmission.
@@ -324,9 +340,11 @@ export class SerialService extends EventEmitter {
 
   /**
    * Process complete ASTM message
+   * Enhanced with receipt timestamp from TimeSyncService
    */
   private processCompleteMessage(connection: InstrumentConnection) {
     const rawData = connection.messageBuffer || '';
+    const receiptTimestamp = timeSyncService.getReceiptTimestamp();
     console.log(`Processing complete message from ${connection.config.path}`);
 
     try {
@@ -336,15 +354,18 @@ export class SerialService extends EventEmitter {
         path: connection.config.path,
         message,
         raw: rawData,
-        timestamp: new Date().toISOString(),
+        timestamp: receiptTimestamp,  // Use TimeSyncService for consistent timestamps
+        receiptTimestamp,             // Explicit receipt timestamp
       });
     } catch (error) {
       console.error(`Error parsing ASTM message:`, error);
+      dataQualityMonitor.recordIncompleteData(connection.id);
       this.emit('parseError', {
         instrumentId: connection.id,
         path: connection.config.path,
         raw: rawData,
         error,
+        receiptTimestamp,
       });
     }
   }

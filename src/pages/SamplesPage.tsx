@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Search, Filter, Eye, Printer, Loader2, Tag } from 'lucide-react';
 import { useSamples } from '@/hooks/use-samples';
@@ -63,11 +63,19 @@ export function SamplesPage() {
             </div>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-gray-400" />
-              <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-32">
-                <option value="all">{t('samples.status_filter.all')}</option>
-                <option value="registered">{t('samples.status_filter.registered')}</option>
-                <option value="in_progress">{t('samples.status_filter.in_progress')}</option>
-                <option value="completed">{t('samples.status_filter.completed')}</option>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => setStatusFilter(value)}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder={t('samples.status_filter.all')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('samples.status_filter.all')}</SelectItem>
+                  <SelectItem value="registered">{t('samples.status_filter.registered')}</SelectItem>
+                  <SelectItem value="in_progress">{t('samples.status_filter.in_progress')}</SelectItem>
+                  <SelectItem value="completed">{t('samples.status_filter.completed')}</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <CardTitle className="text-sm text-gray-500 ml-auto">{t('samples.total_samples', { count: samples.length })}</CardTitle>
@@ -112,8 +120,18 @@ export function SamplesPage() {
                           <Button variant="ghost" size="icon" onClick={() => handlePrintLabel(sample)} title={t('dashboard.print_barcode') || "Print Label"}>
                             <Tag className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
-                          {sample.status === 'completed' && <Button variant="ghost" size="icon"><Printer className="h-4 w-4" /></Button>}
+                          <Link to={`/patients/${sample.patient_id}`}>
+                            <Button variant="ghost" size="icon">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          {sample.status === 'completed' && (
+                            <Link to={`/reports/${sample.id}`}>
+                              <Button variant="ghost" size="icon">
+                                <Printer className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

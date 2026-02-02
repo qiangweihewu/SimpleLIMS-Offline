@@ -9,6 +9,146 @@ export const patientService = {
     return window.electronAPI.db.all<Patient>('SELECT * FROM patients ORDER BY created_at DESC');
   },
 
+  async getPaginated(page: number = 1, pageSize: number = 50, filters: PatientFilters = {}) {
+    if (!isElectron) return { data: [], total: 0, page, pageSize, totalPages: 0 };
+
+    const offset = (page - 1) * pageSize;
+    let whereClause = 'WHERE 1=1';
+    const params: any[] = [];
+
+    // Build dynamic WHERE clause based on filters
+    if (filters.search?.trim()) {
+      whereClause += ` AND (patient_id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR phone LIKE ?)`;
+      const searchTerm = `%${filters.search.trim()}%`;
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+
+    if (filters.gender) {
+      whereClause += ` AND gender = ?`;
+      params.push(filters.gender);
+    }
+
+    if (filters.ageRange?.min !== undefined || filters.ageRange?.max !== undefined) {
+      const today = new Date();
+      if (filters.ageRange.min !== undefined) {
+        const maxBirthDate = new Date(today.getFullYear() - filters.ageRange.min, today.getMonth(), today.getDate());
+        whereClause += ` AND date_of_birth <= ?`;
+        params.push(maxBirthDate.toISOString().split('T')[0]);
+      }
+      if (filters.ageRange.max !== undefined) {
+        const minBirthDate = new Date(today.getFullYear() - filters.ageRange.max - 1, today.getMonth(), today.getDate());
+        whereClause += ` AND date_of_birth > ?`;
+        params.push(minBirthDate.toISOString().split('T')[0]);
+      }
+    }
+
+    if (filters.dateRange?.start) {
+      whereClause += ` AND date(created_at) >= ?`;
+      params.push(filters.dateRange.start);
+    }
+
+    if (filters.dateRange?.end) {
+      whereClause += ` AND date(created_at) <= ?`;
+      params.push(filters.dateRange.end);
+    }
+
+    if (filters.hasRecentActivity) {
+      whereClause += ` AND EXISTS (
+        SELECT 1 FROM samples s 
+        WHERE s.patient_id = patients.id 
+        AND datetime(s.created_at) > datetime('now', '-30 days')
+      )`;
+    }
+
+    // Get total count
+    const countResult = await window.electronAPI.db.get<{ count: number }>(
+      `SELECT COUNT(*) as count FROM patients ${whereClause}`,
+      params
+    );
+    const total = countResult?.count || 0;
+
+    // Get paginated data
+    const data = await window.electronAPI.db.all<Patient>(
+      `SELECT * FROM patients ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, pageSize, offset]
+    );
+
+    return {
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    };
+  },
+
+  async getStats(): Promise<PatientStats> {
+    if (!isElectron) return {
+      total: 0,
+      byGender: { male: 0, female: 0 },
+      byAgeGroup: { '0-18': 0, '19-40': 0, '41-65': 0, '65+': 0 },
+      recentRegistrations: 0,
+      withRecentActivity: 0
+    };
+
+    // Total patients
+    const totalResult = await window.electronAPI.db.get<{ count: number }>(
+      'SELECT COUNT(*) as count FROM patients'
+    );
+
+    // By gender
+    const genderStats = await window.electronAPI.db.all<{ gender: string; count: number }>(
+      'SELECT gender, COUNT(*) as count FROM patients GROUP BY gender'
+    );
+
+    // By age groups (calculate age based on date_of_birth)
+
+    const ageGroupStats = await window.electronAPI.db.all<{ age_group: string; count: number }>(`
+      SELECT 
+        CASE 
+          WHEN (julianday('now') - julianday(date_of_birth)) / 365.25 < 18 THEN '0-18'
+          WHEN (julianday('now') - julianday(date_of_birth)) / 365.25 < 40 THEN '19-40'
+          WHEN (julianday('now') - julianday(date_of_birth)) / 365.25 < 65 THEN '41-65'
+          ELSE '65+'
+        END as age_group,
+        COUNT(*) as count
+      FROM patients 
+      GROUP BY age_group
+    `);
+
+    // Recent registrations (last 30 days)
+    const recentResult = await window.electronAPI.db.get<{ count: number }>(
+      `SELECT COUNT(*) as count FROM patients 
+       WHERE datetime(created_at) > datetime('now', '-30 days')`
+    );
+
+    // Patients with recent activity (samples in last 30 days)
+    const recentActivityResult = await window.electronAPI.db.get<{ count: number }>(
+      `SELECT COUNT(DISTINCT p.id) as count FROM patients p
+       JOIN samples s ON p.id = s.patient_id
+       WHERE datetime(s.created_at) > datetime('now', '-30 days')`
+    );
+
+    // Process results
+    const byGender = { male: 0, female: 0 };
+    genderStats.forEach(stat => {
+      byGender[stat.gender as keyof typeof byGender] = stat.count;
+    });
+
+    const byAgeGroup = { '0-18': 0, '19-40': 0, '41-65': 0, '65+': 0 };
+    ageGroupStats.forEach(stat => {
+      byAgeGroup[stat.age_group as keyof typeof byAgeGroup] = stat.count;
+    });
+
+    return {
+      total: totalResult?.count || 0,
+      byGender,
+      byAgeGroup,
+      recentRegistrations: recentResult?.count || 0,
+      withRecentActivity: recentActivityResult?.count || 0
+    };
+  },
+
   async getById(id: number) {
     if (!isElectron) return undefined;
     return window.electronAPI.db.get<Patient>('SELECT * FROM patients WHERE id = ?', [id]);
@@ -383,7 +523,9 @@ export const dashboardService = {
       pendingSamples: 0,
       completedSamples: 0,
       abnormalResults: 0,
-      recentSamples: []
+      recentSamples: [],
+      weekTotalSamples: 0,
+      weekAverageTAT: 0
     };
 
     // This would be better as a single complex query or multiple parallel queries
@@ -425,12 +567,39 @@ export const dashboardService = {
       LIMIT 5
     `);
 
+    // Weekly Stats
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const dateStr = sevenDaysAgo.toISOString().split('T')[0];
+
+    const weekTotalSamples = await window.electronAPI.db.get<{ count: number }>(
+      `SELECT COUNT(*) as count FROM samples WHERE date(created_at) >= ?`, [dateStr]
+    );
+
+    // Calculate Average TAT (Turnaround Time) for samples completed in the last 7 days
+    // TAT = Result Release Time - Sample Collection Time
+    const tatResult = await window.electronAPI.db.get<{ avg_tat: number }>(`
+      SELECT AVG((julianday(rs.max_released_at) - julianday(s.collected_at)) * 24) as avg_tat
+      FROM samples s
+      JOIN (
+        SELECT o.sample_id, MAX(r.released_at) as max_released_at
+        FROM results r
+        JOIN orders o ON r.order_id = o.id
+        WHERE r.is_released = 1
+        GROUP BY o.sample_id
+      ) rs ON s.id = rs.sample_id
+      WHERE s.status = 'completed'
+      AND date(rs.max_released_at) >= ?
+    `, [dateStr]);
+
     return {
       todaySamples: todaySamples?.count || 0,
       pendingSamples: pendingSamples?.count || 0,
       completedSamples: completedSamples?.count || 0,
       abnormalResults: abnormalResults?.count || 0,
-      recentSamples: recentSamples || []
+      recentSamples: recentSamples || [],
+      weekTotalSamples: weekTotalSamples?.count || 0,
+      weekAverageTAT: tatResult?.avg_tat ? Math.round(tatResult.avg_tat * 10) / 10 : 0
     };
   }
 };
@@ -551,12 +720,36 @@ export const worklistService = {
 };
 
 // Types
+export interface PatientFilters {
+  search?: string;
+  gender?: 'male' | 'female' | '';
+  ageRange?: { min?: number; max?: number };
+  dateRange?: { start?: string; end?: string };
+  hasRecentActivity?: boolean;
+}
+
+export interface PaginatedPatients {
+  data: Patient[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface PatientStats {
+  total: number;
+  byGender: { male: number; female: number };
+  byAgeGroup: { '0-18': number; '19-40': number; '41-65': number; '65+': number };
+  recentRegistrations: number;
+  withRecentActivity: number;
+}
+
 export interface Patient {
   id: number;
   patient_id: string;
   first_name: string;
   last_name: string;
-  gender: 'male' | 'female' | 'other';
+  gender: 'male' | 'female';
   date_of_birth: string;
   phone?: string;
   email?: string;
@@ -892,7 +1085,7 @@ export const qcService = {
          WHERE material_id = ?
          AND datetime(performed_at) > datetime('now', '-' || ? || ' days')
          ORDER BY performed_at DESC`;
-    
+
     const params = instrumentId ? [materialId, instrumentId, limitDays] : [materialId, limitDays];
     return window.electronAPI.db.all<QCResultRecord>(sql, params);
   },
@@ -921,7 +1114,7 @@ export const qcService = {
     message: string;
   }> {
     if (!isElectron) return { passedToday: false, message: 'Not available' };
-    
+
     const result = await window.electronAPI.db.get<QCResultRecord>(
       `SELECT * FROM qc_results 
        WHERE instrument_id = ? AND date(performed_at) = date('now')

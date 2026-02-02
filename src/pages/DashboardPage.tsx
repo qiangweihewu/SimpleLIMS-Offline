@@ -103,19 +103,24 @@ export function DashboardPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">{t('dashboard.total_samples')}</span>
-                <span className="font-bold">--</span>
+                <span className="font-bold">{loading ? '--' : stats.weekTotalSamples}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '0%' }} />
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((stats.weekTotalSamples || 0) / 100 * 100, 100)}%` }}
+                />
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">{t('dashboard.avg_tat')}</span>
-                <span className="font-bold">-- {t('dashboard.hours')}</span>
+                <span className="font-bold">{loading ? '--' : stats.weekAverageTAT} {t('dashboard.hours')}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: '0%' }} />
+                <div
+                  className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((stats.weekAverageTAT || 0) / 24 * 100, 100)}%` }}
+                />
               </div>
-              <p className="text-center text-xs text-gray-400 pt-2">{t('dashboard.stats.wip')}</p>
             </div>
           </CardContent>
         </Card>

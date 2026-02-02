@@ -47,8 +47,9 @@ export function formatDate(date: string | Date, locale = 'en-US'): string {
 /**
  * Generate unique ID
  */
-export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+export function generateId(prefix: string = ''): string {
+  const id = `${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+  return prefix ? `${prefix}-${id}` : id;
 }
 
 /**

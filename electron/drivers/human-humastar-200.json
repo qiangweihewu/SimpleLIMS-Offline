@@ -1,0 +1,69 @@
+{
+    "id": "human-humastar-200",
+    "name": "Human HumaStar 200",
+    "manufacturer": "Human Diagnostics",
+    "model": "HumaStar 200",
+    "category": "chemistry",
+    "connection": "serial",
+    "protocol": "astm",
+    "description": "Human HumaStar 200 全自动生化分析仪",
+    "serialConfig": {
+        "baudRate": 9600,
+        "dataBits": 8,
+        "stopBits": 1,
+        "parity": "none",
+        "flowControl": false
+    },
+    "protocolOptions": {
+        "astm": {
+            "frameDelimiter": "\r",
+            "recordDelimiter": "\n",
+            "fieldDelimiter": "|",
+            "repeatDelimiter": "\\",
+            "componentDelimiter": "^",
+            "escapeDelimiter": "&",
+            "sendAck": true,
+            "bidirectional": true
+        }
+    },
+    "testMapping": {
+        "GLU": "GLU",
+        "UREA": "BUN",
+        "CREA": "CREA",
+        "UA": "UA",
+        "CHOL": "TC",
+        "TG": "TG",
+        "HDL": "HDL",
+        "LDL": "LDL",
+        "TP": "TP",
+        "ALB": "ALB",
+        "TBIL": "TBIL",
+        "DBIL": "DBIL",
+        "GOT": "AST",
+        "GPT": "ALT",
+        "ALP": "ALP",
+        "GGT": "GGT",
+        "AMY": "AMY",
+        "CK": "CK",
+        "CKMB": "CK-MB",
+        "LDH": "LDH"
+    },
+    "unitConversion": {
+        "GLU": {
+            "from": "mg/dL",
+            "to": "mmol/L",
+            "factor": 0.0555
+        },
+        "UREA": {
+            "from": "mg/dL",
+            "to": "mmol/L",
+            "factor": 0.1665
+        },
+        "CREA": {
+            "from": "mg/dL",
+            "to": "μmol/L",
+            "factor": 88.4
+        }
+    },
+    "version": "1.0.0"
+}

@@ -29,7 +29,9 @@
     "actions": "Ações",
     "success": "Sucesso",
     "error": "Erro",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "active": "Ativo",
+    "inactive": "Inativo"
   },
   "dashboard": {
     "welcome": "Bem-vindo de volta",
@@ -88,8 +90,7 @@
     },
     "gender": {
       "male": "Masculino",
-      "female": "Feminino",
-      "other": "Outro"
+      "female": "Femenino"
     },
     "actions": {
       "order": "Pedido"
@@ -329,12 +330,12 @@
       "add_user": "Adicionar Usuário"
     },
     "messages": {
-        "backup_location": "Por favor selecione o local de backup...",
-        "backup_success": "Backup do banco de dados bem-sucedido",
-        "backup_failed": "Falha no backup",
-        "restore_confirm": "Restaurar banco de dados? Os dados atuais serão substituídos.",
-        "restore_success": "Restauração bem-sucedida, por favor reinicie o aplicativo",
-        "restore_failed": "Falha na restauração"
+      "backup_location": "Por favor selecione o local de backup...",
+      "backup_success": "Backup do banco de dados bem-sucedido",
+      "backup_failed": "Falha no backup",
+      "restore_confirm": "Restaurar banco de dados? Os dados atuais serão substituídos.",
+      "restore_success": "Restauração bem-sucedida, por favor reinicie o aplicativo",
+      "restore_failed": "Falha na restauração"
     }
   },
   "reports": {
@@ -400,6 +401,43 @@
     "messages": {
       "create_success": "Criado com sucesso",
       "update_success": "Atualizado com sucesso"
+    }
+  },
+  "sync": {
+    "title": "Sincronização de Dados e Integrações",
+    "subtitle": "Configurar conexões com sistemas externos",
+    "cloud_sync": "Sincronização na Nuvem",
+    "dhis2": "Integração DHIS2",
+    "openmrs": "Integração OpenMRS",
+    "server_url": "URL do Servidor",
+    "username": "Nome de usuário",
+    "password": "Senha",
+    "enable": "Ativar integração",
+    "test_connection": "Testar Conexão",
+    "save_config": "Salvar Configuração",
+    "export_offline": "Exportar Pacote Offline",
+    "import_offline": "Importar Pacote Offline",
+    "manual_sync": "Sincronizar Agora",
+    "last_sync": "Última Sinc.",
+    "org_unit_id": "ID Unidade Org.",
+    "dataset_id": "ID Conjunto de Dados",
+    "status": "Status",
+    "online_sync": "Sincronização Online",
+    "offline_transfer": "Transferência Offline",
+    "offline_transfer_desc": "Transferir dados entre locais via arquivo criptografado.",
+    "messages": {
+      "save_success": "Configuração salva",
+      "save_failed": "Falha ao salvar configuração",
+      "export_success": "Pacote exportado para {{path}}",
+      "export_failed": "Falha na exportação",
+      "import_success": "Pacote importado. {{count}} registros atualizados.",
+      "import_failed": "Falha na importação",
+      "sync_success": "Sincronização concluída com sucesso",
+      "sync_failed": "Falha na sincronização",
+      "connection_success": "Conexão bem-sucedida",
+      "connection_failed": "Falha na conexão",
+      "patient_found": "Paciente encontrado: {{id}}",
+      "no_patient_found": "Nenhum paciente encontrado com ID 1001 (Conexão OK)"
     }
   }
 }

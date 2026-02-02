@@ -14,6 +14,16 @@ import { getDriverManager } from './services/instrument-driver-manager.js';
 import { extractTestCode, parseResultValue, mapAbnormalFlag } from './services/astm-parser.js';
 import { virtualInstrumentSimulation } from './services/virtual-instrument-simulation.js';
 import { setupHL7Handlers } from './handlers/hl7-handler.js';
+import { timeSyncService } from './services/time-sync-service.js';
+import { dataQualityMonitor } from './services/data-quality-monitor.js';
+import { deviceLifecycleManager } from './services/device-lifecycle-manager.js';
+import { predictiveMaintenanceService } from './services/predictive-maintenance-service.js';
+import { videoCaptureService } from './services/video-capture-service.js';
+import { dicomWrapper } from './services/dicom-wrapper.js';
+import { orthancService } from './services/orthanc-service.js';
+import { CloudSyncService } from './services/cloud-sync-service.js';
+import { DHIS2Reporter } from './services/dhis2-reporter.js';
+import { OpenMRSBridge } from './services/openmrs-bridge.js';
 import crypto from 'crypto';
 import os from 'os';
 import path from 'path';
@@ -146,7 +156,7 @@ async function processInstrumentMessage(data: { instrumentId: number; message: a
   }
 }
 
-export function setupIpcHandlers(mainWindow?: BrowserWindow) {
+export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
   // Initialize database
   initDatabase();
 
@@ -562,7 +572,7 @@ export function setupIpcHandlers(mainWindow?: BrowserWindow) {
     return { success: true };
   });
 
-  console.log('IPC handlers registered');
+  // console.log('IPC handlers registered');
   // ============= Authentication =============
 
   ipcMain.handle('auth:login', async (_event, { username, password }) => {
@@ -798,6 +808,107 @@ export function setupIpcHandlers(mainWindow?: BrowserWindow) {
     } catch (err: any) {
       console.error('First admin creation failed:', err);
       return { success: false, error: err.message };
+    }
+  });
+
+
+  // ============= Phase 1: Time Sync & Quality =============
+  ipcMain.handle('time:getDrift', (_event, instrumentId: number) => timeSyncService.getDriftOffset(instrumentId));
+  ipcMain.handle('time:setOffset', (_event, { instrumentId, offsetMs }) => timeSyncService.setManualOffset(instrumentId, offsetMs));
+  ipcMain.handle('time:getHistory', (_event, instrumentId: number) => timeSyncService.getDriftHistory(instrumentId));
+  ipcMain.handle('time:getSystemTime', () => timeSyncService.getSystemTime());
+
+  // Quality Monitor
+  ipcMain.handle('quality:getMetrics', (_event, instrumentId: number) => dataQualityMonitor.getMetrics(instrumentId));
+  ipcMain.handle('quality:getHistory', (_event, { instrumentId, hours }) => dataQualityMonitor.getHistory(instrumentId, hours));
+
+  // ============= Phase 2: Lifecycle & Maintenance =============
+  ipcMain.handle('lifecycle:addEvent', (_event, { instrumentId, event }) => deviceLifecycleManager.recordEvent({ ...event, instrumentId }));
+  ipcMain.handle('lifecycle:getHistory', (_event, instrumentId: number) => deviceLifecycleManager.getHistory(instrumentId));
+  ipcMain.handle('lifecycle:getUpcomingDueDates', (_event, days: number) => deviceLifecycleManager.getUpcomingDueDates(days));
+
+  ipcMain.handle('maintenance:evaluateHealth', (_event, instrumentId: number) => predictiveMaintenanceService.evaluateDevice(instrumentId));
+  // predictFailure is internal to evaluateDevice, result is in predictedIssues
+
+
+  // ============= Phase 3: Semantics (Optional exposure) =============
+  // SemanticMapper is mostly internal to result processing, but we can expose mapping utils if needed.
+  // For now, no direct IPC needed unless UI has a mapper editor.
+
+  // ============= Phase 5: Imaging (Video/DICOM) =============
+  ipcMain.handle('video:listDevices', () => videoCaptureService.listDevices());
+
+  ipcMain.handle('video:startPreview', (_event, config) => videoCaptureService.startPreview(config));
+  ipcMain.handle('video:stopPreview', (_event, devicePath) => videoCaptureService.stopPreview(devicePath));
+
+  ipcMain.handle('video:capture', (_event, { config, patientId }) => videoCaptureService.captureFrame(config, patientId));
+
+  ipcMain.handle('video:startRecording', (_event, { config, patientId, duration }) => videoCaptureService.startRecording(config, patientId, duration));
+  ipcMain.handle('video:stopRecording', (_event, sessionId) => videoCaptureService.stopRecording(sessionId));
+  ipcMain.handle('video:saveWebRecording', (_event, { buffer, patientId, format }) => videoCaptureService.saveWebRecording(buffer, patientId, format));
+
+  ipcMain.handle('video:getCaptures', (_event, patientId) => videoCaptureService.getCaptures(patientId));
+
+  // DICOM
+  ipcMain.handle('dicom:wrap', (_event, { imagePath, patient, study }) => dicomWrapper.wrapImage(imagePath, patient, study));
+  ipcMain.handle('dicom:list', (_event, patientId) => dicomWrapper.getDicomFiles(patientId));
+
+  // Orthanc
+  ipcMain.handle('orthanc:test', () => orthancService.testConnection());
+  ipcMain.handle('orthanc:upload', (_event, filePath) => orthancService.uploadDicom(filePath));
+  ipcMain.handle('orthanc:search', (_event, query) => orthancService.findStudies(query));
+
+  // End of Phase 5
+
+  // ============= Phase 4: External Integrations =============
+
+
+  // Singleton instances
+  const cloudSync = new CloudSyncService(getDatabase().name);
+  const dhis2Reporter = new DHIS2Reporter(getDatabase().name);
+  const openMrsBridge = new OpenMRSBridge(getDatabase().name);
+
+  // Cloud Sync
+  ipcMain.handle('sync:getConfig', () => cloudSync.getConfig());
+  ipcMain.handle('sync:setConfig', (_event, config) => cloudSync.setConfig(config));
+  ipcMain.handle('sync:exportOffline', (_event, { since, password }) => cloudSync.exportOfflinePackage(since, password));
+  ipcMain.handle('sync:importOffline', (_event, { path, password }) => cloudSync.importOfflinePackage(path, password));
+  ipcMain.handle('sync:manual', () => cloudSync.manualSync());
+
+  // DHIS2
+  ipcMain.handle('dhis2:getConfig', () => dhis2Reporter.getConfig());
+  ipcMain.handle('dhis2:setConfig', (_event, config) => dhis2Reporter.setConfig(config));
+  ipcMain.handle('dhis2:generateDaily', (_event, date) => dhis2Reporter.generateAggregate(date));
+  ipcMain.handle('dhis2:submit', (_event, data) => dhis2Reporter.submitData(data));
+
+  // OpenMRS
+  ipcMain.handle('openmrs:getConfig', () => openMrsBridge.getConfig());
+  ipcMain.handle('openmrs:setConfig', (_event, config) => openMrsBridge.setConfig(config));
+  ipcMain.handle('openmrs:findPatient', (_event, identifier) => openMrsBridge.findPatient(identifier));
+  ipcMain.handle('openmrs:pushObservation', (_event, obs) => openMrsBridge.pushObservation(obs));
+
+  // ============= Debug/Testing Handlers =============
+
+  ipcMain.handle('debug:testProtocol', async (_event, testPath?: string) => {
+    try {
+      const testFilePath = testPath || path.join(videoCaptureService.getStoragePath(), 'test.txt');
+
+      // Create a test file if it doesn't exist
+      if (!fs.existsSync(testFilePath)) {
+        fs.writeFileSync(testFilePath, 'Test file for protocol handler verification');
+      }
+
+      return {
+        success: true,
+        testPath: testFilePath,
+        exists: fs.existsSync(testFilePath),
+        protocolUrl: `app-data://${testFilePath}`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   });
 

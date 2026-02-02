@@ -1,0 +1,104 @@
+{
+  "id": "mindray-pm9000-hex",
+  "name": "Mindray PM-9000 (Hex Protocol)",
+  "manufacturer": "Mindray",
+  "model": "PM-9000",
+  "category": "patient_monitor",
+  "connection": "serial",
+  "protocol": "hex",
+  "description": "Mindray PM-9000 患者监护仪专有二进制协议",
+  "serialConfig": {
+    "baudRate": 19200,
+    "dataBits": 8,
+    "stopBits": 1,
+    "parity": "none",
+    "flowControl": false
+  },
+  "hexDefinition": {
+    "id": "mindray-pm9000-vital-signs",
+    "name": "Vital Signs Frame",
+    "description": "Real-time vital signs data frame",
+    "startMarker": [2, 0],
+    "endMarker": [3],
+    "checksumType": "xor",
+    "checksumOffset": -2,
+    "checksumLength": 1,
+    "checksumRange": [0, -2],
+    "fields": [
+      {
+        "name": "HR",
+        "offset": 4,
+        "length": 2,
+        "type": "uint16_le",
+        "unit": "bpm",
+        "scale": 1
+      },
+      {
+        "name": "SpO2",
+        "offset": 6,
+        "length": 1,
+        "type": "uint8",
+        "unit": "%"
+      },
+      {
+        "name": "NIBP_SYS",
+        "offset": 8,
+        "length": 2,
+        "type": "uint16_le",
+        "unit": "mmHg"
+      },
+      {
+        "name": "NIBP_DIA",
+        "offset": 10,
+        "length": 2,
+        "type": "uint16_le",
+        "unit": "mmHg"
+      },
+      {
+        "name": "NIBP_MAP",
+        "offset": 12,
+        "length": 2,
+        "type": "uint16_le",
+        "unit": "mmHg"
+      },
+      {
+        "name": "RESP",
+        "offset": 14,
+        "length": 1,
+        "type": "uint8",
+        "unit": "rpm"
+      },
+      {
+        "name": "TEMP",
+        "offset": 15,
+        "length": 2,
+        "type": "uint16_le",
+        "unit": "°C",
+        "scale": 0.1
+      },
+      {
+        "name": "ALARM_STATUS",
+        "offset": 17,
+        "length": 1,
+        "type": "uint8",
+        "enumMap": {
+          "0": "normal",
+          "1": "low_priority",
+          "2": "medium_priority",
+          "3": "high_priority"
+        }
+      }
+    ]
+  },
+  "testMapping": {
+    "HR": "HR",
+    "SpO2": "SPO2",
+    "NIBP_SYS": "NIBP_SYS",
+    "NIBP_DIA": "NIBP_DIA",
+    "NIBP_MAP": "NIBP_MAP",
+    "RESP": "RESP_RATE",
+    "TEMP": "TEMP"
+  },
+  "version": "1.0.0",
+  "notes": "适用于 Mindray PM-9000 系列监护仪的专有 Hex 协议"
+}

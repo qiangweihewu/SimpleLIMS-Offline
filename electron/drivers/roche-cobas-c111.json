@@ -1,0 +1,73 @@
+{
+  "id": "roche-cobas-c111",
+  "name": "Roche Cobas c111",
+  "manufacturer": "Roche Diagnostics",
+  "model": "Cobas c111",
+  "category": "chemistry",
+  "connection": "serial",
+  "protocol": "astm",
+  "description": "Roche Cobas c111 小型生化分析仪，支持双向通信",
+  "serialConfig": {
+    "baudRate": 9600,
+    "dataBits": 8,
+    "stopBits": 1,
+    "parity": "none",
+    "flowControl": false
+  },
+  "protocolOptions": {
+    "astm": {
+      "frameDelimiter": "\r",
+      "recordDelimiter": "\n",
+      "fieldDelimiter": "|",
+      "repeatDelimiter": "\\",
+      "componentDelimiter": "^",
+      "escapeDelimiter": "&",
+      "sendAck": true,
+      "bidirectional": true,
+      "supportHostQuery": true
+    }
+  },
+  "testMapping": {
+    "GLU": "GLU",
+    "BUN": "BUN",
+    "CREA": "CREA",
+    "UA": "UA",
+    "CHOL": "TC",
+    "TRIG": "TG",
+    "HDL": "HDL",
+    "LDL": "LDL",
+    "TP": "TP",
+    "ALB": "ALB",
+    "TBIL": "TBIL",
+    "DBIL": "DBIL",
+    "ALT": "ALT",
+    "AST": "AST",
+    "ALP": "ALP",
+    "GGT": "GGT",
+    "AMY": "AMY",
+    "LDH": "LDH",
+    "CK": "CK",
+    "K": "K",
+    "NA": "NA",
+    "CL": "CL",
+    "CA": "CA",
+    "MG": "MG",
+    "PHOS": "PHOS"
+  },
+  "unitConversion": {
+    "GLU": { "from": "mg/dL", "to": "mmol/L", "factor": 0.0555 },
+    "BUN": { "from": "mg/dL", "to": "mmol/L", "factor": 0.357 },
+    "CREA": { "from": "mg/dL", "to": "μmol/L", "factor": 88.4 },
+    "UA": { "from": "mg/dL", "to": "μmol/L", "factor": 59.48 },
+    "CHOL": { "from": "mg/dL", "to": "mmol/L", "factor": 0.0259 },
+    "TRIG": { "from": "mg/dL", "to": "mmol/L", "factor": 0.0113 }
+  },
+  "dataOptions": {
+    "trimWhitespace": true,
+    "autoMatchSample": true,
+    "resultTimeout": 300,
+    "acceptPartialResults": true
+  },
+  "version": "1.0.0",
+  "notes": "适用于 Roche Cobas c111 生化分析仪，支持约50个样本/天的小型实验室"
+}

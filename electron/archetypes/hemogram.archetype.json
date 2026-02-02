@@ -1,0 +1,183 @@
+{
+  "archetypeId": "openEHR-EHR-OBSERVATION.laboratory_test_result.v1",
+  "name": "Complete Blood Count (Hemogram)",
+  "description": "Complete blood count with differential, mapped to LOINC codes",
+  "version": "1.0.0",
+  "deviceMappings": [
+    {
+      "deviceField": "WBC",
+      "archetypePath": "/data/events/data/items[at0001]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "6690-2",
+        "display": "Leukocytes [#/volume] in Blood by Automated count"
+      },
+      "unit": "10^9/L",
+      "ucumCode": "10*9/L"
+    },
+    {
+      "deviceField": "RBC",
+      "archetypePath": "/data/events/data/items[at0002]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "789-8",
+        "display": "Erythrocytes [#/volume] in Blood by Automated count"
+      },
+      "unit": "10^12/L",
+      "ucumCode": "10*12/L"
+    },
+    {
+      "deviceField": "HGB",
+      "archetypePath": "/data/events/data/items[at0003]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "718-7",
+        "display": "Hemoglobin [Mass/volume] in Blood"
+      },
+      "unit": "g/dL",
+      "ucumCode": "g/dL"
+    },
+    {
+      "deviceField": "HCT",
+      "archetypePath": "/data/events/data/items[at0004]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "4544-3",
+        "display": "Hematocrit [Volume Fraction] of Blood by Automated count"
+      },
+      "unit": "%",
+      "ucumCode": "%"
+    },
+    {
+      "deviceField": "MCV",
+      "archetypePath": "/data/events/data/items[at0005]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "787-2",
+        "display": "MCV [Entitic volume] by Automated count"
+      },
+      "unit": "fL",
+      "ucumCode": "fL"
+    },
+    {
+      "deviceField": "MCH",
+      "archetypePath": "/data/events/data/items[at0006]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "785-6",
+        "display": "MCH [Entitic mass] by Automated count"
+      },
+      "unit": "pg",
+      "ucumCode": "pg"
+    },
+    {
+      "deviceField": "MCHC",
+      "archetypePath": "/data/events/data/items[at0007]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "786-4",
+        "display": "MCHC [Mass/volume] by Automated count"
+      },
+      "unit": "g/dL",
+      "ucumCode": "g/dL"
+    },
+    {
+      "deviceField": "PLT",
+      "archetypePath": "/data/events/data/items[at0008]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "777-3",
+        "display": "Platelets [#/volume] in Blood by Automated count"
+      },
+      "unit": "10^9/L",
+      "ucumCode": "10*9/L"
+    },
+    {
+      "deviceField": "RDW",
+      "archetypePath": "/data/events/data/items[at0009]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "788-0",
+        "display": "RDW [Ratio] by Automated count"
+      },
+      "unit": "%",
+      "ucumCode": "%"
+    },
+    {
+      "deviceField": "MPV",
+      "archetypePath": "/data/events/data/items[at0010]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "32623-1",
+        "display": "MPV [Entitic volume] in Blood by Automated count"
+      },
+      "unit": "fL",
+      "ucumCode": "fL"
+    },
+    {
+      "deviceField": "NEU%",
+      "archetypePath": "/data/events/data/items[at0011]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "770-8",
+        "display": "Neutrophils/100 leukocytes in Blood by Automated count"
+      },
+      "unit": "%",
+      "ucumCode": "%"
+    },
+    {
+      "deviceField": "LYM%",
+      "archetypePath": "/data/events/data/items[at0012]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "736-9",
+        "display": "Lymphocytes/100 leukocytes in Blood by Automated count"
+      },
+      "unit": "%",
+      "ucumCode": "%"
+    },
+    {
+      "deviceField": "MONO%",
+      "archetypePath": "/data/events/data/items[at0013]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "5905-5",
+        "display": "Monocytes/100 leukocytes in Blood by Automated count"
+      },
+      "unit": "%",
+      "ucumCode": "%"
+    },
+    {
+      "deviceField": "EOS%",
+      "archetypePath": "/data/events/data/items[at0014]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "713-8",
+        "display": "Eosinophils/100 leukocytes in Blood by Automated count"
+      },
+      "unit": "%",
+      "ucumCode": "%"
+    },
+    {
+      "deviceField": "BASO%",
+      "archetypePath": "/data/events/data/items[at0015]/value",
+      "fhirPath": "Observation.valueQuantity",
+      "loinc": {
+        "code": "706-2",
+        "display": "Basophils/100 leukocytes in Blood by Automated count"
+      },
+      "unit": "%",
+      "ucumCode": "%"
+    }
+  ],
+  "fhirProfile": "http://hl7.org/fhir/StructureDefinition/Observation",
+  "fhirCategory": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+        "code": "laboratory",
+        "display": "Laboratory"
+      }
+    ]
+  }
+}

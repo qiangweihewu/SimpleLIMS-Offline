@@ -247,7 +247,10 @@ export function ResultsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold text-gray-900">{t('results.title')}</h1><p className="text-gray-500">{t('results.subtitle')}</p></div>
-        <Button variant="outline"><CheckCircle className="h-4 w-4 mr-2" />{t('results.batch_verify')}</Button>
+        <Button variant="outline" onClick={() => toast.info(t('common.feature_coming_soon') || 'Coming Soon')}>
+          <CheckCircle className="h-4 w-4 mr-2" />
+          {t('results.batch_verify')}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -6,6 +6,8 @@
   "common": {
     "loading": "加载中...",
     "save": "保存",
+    "select_all": "全选",
+    "clear_all": "一键清除",
     "cancel": "取消",
     "select": "选择",
     "save_config": "保存配置",
@@ -36,10 +38,57 @@
     "error_occurred": "发生错误",
     "saved_success": "保存成功",
     "deleted_success": "删除成功",
-    "confirm_delete": "确定要删除吗？"
+    "confirm_delete": "确定要删除吗？",
+    "active": "已启用",
+    "inactive": "未启用",
+    "clear": "清除",
+    "expand": "展开",
+    "collapse": "收起",
+    "apply_filters": "应用筛选",
+    "import": "导入",
+    "export": "导出",
+    "showing": "显示",
+    "of": "共",
+    "rows_per_page": "每页显示",
+    "confirm_restart_msg": "您确定要重启软件吗？",
+    "confirm_quit_msg": "您确定要退出软件吗？"
+  },
+  "feedback": {
+    "title": "反馈与支持",
+    "type": {
+      "label": "反馈类型",
+      "bug": "问题反馈",
+      "feature": "功能建议",
+      "other": "其他"
+    },
+    "content": {
+      "label": "详细描述",
+      "placeholder": "请详细描述您的问题或建议..."
+    },
+    "contact": {
+      "label": "您的邮箱 (可选)",
+      "placeholder": "方便我们联系您进一步了解详情"
+    },
+    "status": {
+      "online": "联网状态：可在线直接提交反馈",
+      "offline": "离线状态：请导出 PDF 并通过邮件发送"
+    },
+    "submit": "立即提交反馈",
+    "export": "导出 PDF 并邮件发送",
+    "success": "感谢您的反馈！我们已收到。",
+    "export_success": "反馈 PDF 已保存！请将其发送至 support@simplelabos.com",
+    "email_subject": "来自 SimpleLIMS 离线版用户的反馈",
+    "images": {
+      "label": "上传附件（图片）",
+      "limit_error": "图片大小超过 10MB 限制。",
+      "placeholder": "点击或拖拽上传图片",
+      "remove": "移除图片",
+      "offline_reminder": "注意：由于处于离线状态，发送邮件时请务必将选择的图片连同导出的 PDF 一起作为附件发送。"
+    }
   },
   "nav": {
     "dashboard": "仪表盘",
+    "new_order": "新建检验",
     "patients": "患者管理",
     "samples": "样本管理",
     "orders": "新订单",
@@ -92,6 +141,10 @@
     "add_patient": "添加患者",
     "total_patients": "总计 {{count}} 位患者",
     "no_data": "暂无患者数据，请先添加患者",
+    "no_patients_found": "未找到患者",
+    "no_patients_description": "开始添加患者以管理他们的信息和检验记录",
+    "quick_search_placeholder": "搜索患者姓名、ID或电话...",
+    "showing_results": "显示 {{count}} / {{total}} 条结果",
     "id_management": "标识信息",
     "custom_patient_id": "手动输入 ID",
     "custom_patient_id_placeholder": "输入自定义患者 ID",
@@ -111,7 +164,8 @@
       "placeholder": {
         "last_name": "例如: 张",
         "first_name": "例如: 三",
-        "address": "详细居住地址"
+        "address": "详细居住地址",
+        "gender": "选择性别"
       }
     },
     "table": {
@@ -124,8 +178,7 @@
     },
     "gender": {
       "male": "男",
-      "female": "女",
-      "other": "其他"
+      "female": "女"
     },
     "actions": {
       "order": "开单"
@@ -137,6 +190,44 @@
       "not_found": "患者不存在",
       "notes": "备注",
       "years_old": "岁"
+    },
+    "details": {
+      "title": "患者详情"
+    },
+    "search_results": "搜索结果",
+    "export_success": "导出成功",
+    "export_failed": "导出失败",
+    "export_no_data": "没有可导出的数据",
+    "import_success": "成功导入 {{count}} 条记录",
+    "import_failed": "导入失败，请检查文件格式",
+    "filters": {
+      "title": "筛选条件",
+      "search": "搜索",
+      "search_placeholder": "患者姓名、ID或电话",
+      "gender": "性别",
+      "all_genders": "所有性别",
+      "recent_activity": "活动状态",
+      "all_patients": "所有患者",
+      "recent_activity_only": "仅显示近期活跃",
+      "age_range": "年龄范围",
+      "min_age": "最小年龄",
+      "max_age": "最大年龄",
+      "years": "岁",
+      "registration_date": "注册日期"
+    },
+    "stats": {
+      "total_patients": "总患者数",
+      "recent_registrations": "新增患者",
+      "last_30_days": "最近30天",
+      "recent_activity": "活跃患者",
+      "with_samples": "有检验记录",
+      "gender_distribution": "性别分布",
+      "male_female_other": "男/女",
+      "age_distribution": "年龄分布",
+      "age_group_0_18": "0-18岁",
+      "age_group_19_40": "19-40岁",
+      "age_group_41_65": "41-65岁",
+      "age_group_65_plus": "65岁以上"
     }
   },
   "samples": {
@@ -213,7 +304,14 @@
     },
     "custom_sample_id": "使用自定义样本ID",
     "custom_sample_id_placeholder": "例如: 23102401",
-    "id_exists_error": "ID已存在"
+    "id_exists_error": "ID已存在",
+    "select_patient_desc": "从下方列表中选择患者",
+    "register_helper": "请使用右侧按钮注册新患者。",
+    "patient_not_found_helper": "患者不在列表中？",
+    "patient_selected": "已选择患者",
+    "please_select_patient": "请选择患者",
+    "selected_count": "已选数量",
+    "confirm_desc": "请在创建订单前核对所有信息"
   },
   "results": {
     "title": "结果录入",
@@ -614,6 +712,12 @@
       "hematology": "血液学",
       "chemistry": "生化",
       "immuno": "免疫",
+      "electrolytes": "电解质",
+      "coagulation": "凝血",
+      "urinalysis": "尿液分析",
+      "immunoassay": "免疫",
+      "imaging": "影像",
+      "monitoring": "监护",
       "other": "其他"
     },
     "status": {
@@ -644,7 +748,56 @@
       "TG": "甘油三酯",
       "HDL": "高密度脂蛋白",
       "LDL": "低密度脂蛋白",
-      "HbA1c": "糖化血红蛋白"
+      "HbA1c": "糖化血红蛋白",
+      "Na": "钠",
+      "K": "钾",
+      "Cl": "氯",
+      "Ca": "钙",
+      "PHOS": "磷",
+      "Mg": "镁",
+      "PT": "凝血酶原时间",
+      "APTT": "活化部分凝血活酶时间",
+      "FIB": "纤维蛋白原",
+      "TT": "凝血酶时间",
+      "INR": "国际标准化比值",
+      "D_Dimer": "D-二聚体",
+      "U_pH": "尿液 pH",
+      "U_SG": "比重",
+      "U_PRO": "尿蛋白",
+      "U_GLU": "尿葡萄糖",
+      "U_KET": "尿酮体",
+      "U_BIL": "尿胆红素",
+      "U_UBG": "尿胆原",
+      "U_NIT": "亚硝酸盐",
+      "U_LEU": "白细胞",
+      "U_BLD": "隐血",
+      "TSH": "促甲状腺激素",
+      "FT3": "游离三碘甲状腺原氨酸",
+      "FT4": "游离甲状腺素",
+      "T3": "总三碘甲状腺原氨酸",
+      "T4": "总甲状腺素",
+      "CRP": "C反应蛋白",
+      "PCT": "降钙素原",
+      "Ferritin": "铁蛋白",
+      "VitB12": "维生素 B12",
+      "Folate": "叶酸",
+      "ALP": "碱性磷酸酶",
+      "GGT": "谷氨酰转肽酶",
+      "LDH": "乳酸脱氢酶",
+      "CK": "肌酸激酶",
+      "CK_MB": "肌酸激酶同工酶",
+      "DBIL": "直接胆红素",
+      "IBIL": "间接胆红素",
+      "AMY": "淀粉酶",
+      "US": "超声检查",
+      "XR": "X光检查",
+      "ECG": "心电图",
+      "HR": "心率",
+      "SpO2": "血氧饱和度",
+      "BP_SYS": "收缩压",
+      "BP_DIA": "舒张压",
+      "RR": "呼吸频率",
+      "TEMP": "体温"
     },
     "form": {
       "title_add": "新增项目",
@@ -695,6 +848,58 @@
     "LIPID": {
       "name": "血脂四项",
       "description": "TC, TG, HDL, LDL"
+    },
+    "ELECTROLYTES": {
+      "name": "电解质",
+      "description": "Na, K, Cl, Ca, PHOS, Mg"
+    },
+    "COAG": {
+      "name": "凝血五项",
+      "description": "PT, APTT, FIB, TT, INR"
+    },
+    "URINE": {
+      "name": "尿常规",
+      "description": "尿液常规 10 项"
+    },
+    "THYROID": {
+      "name": "甲功五项",
+      "description": "TSH, FT3, FT4, T3, T4"
+    },
+    "MYO": {
+      "name": "心肌酶谱",
+      "description": "CK, CK-MB, LDH"
+    },
+    "EXT_LFT": {
+      "name": "肝功能全套",
+      "description": "ALT, AST, TBIL, DBIL, IBIL, ALP, GGT, TP, ALB"
+    },
+    "DIABETES": {
+      "name": "糖尿病筛查",
+      "description": "GLU, HbA1c"
+    },
+    "ANEMIA": {
+      "name": "贫血三项",
+      "description": "Ferritin, VitB12, Folate"
+    },
+    "INFECTION": {
+      "name": "感染标志物",
+      "description": "CRP, PCT"
+    },
+    "PANCREAS": {
+      "name": "胰腺功能",
+      "description": "AMY"
+    },
+    "IMAGING_PKG": {
+      "name": "常用影像检查",
+      "description": "US, XR"
+    },
+    "ECG_PKG": {
+      "name": "心电监护",
+      "description": "ECG"
+    },
+    "VITALS": {
+      "name": "生命体征监测",
+      "description": "HR, SpO2, BP, RR, TEMP"
     }
   },
   "admin": {
@@ -832,6 +1037,43 @@
       "record_failed": "记录QC结果失败",
       "qc_passed": "✓ QC通过，仪器可用",
       "qc_warning": "⚠️ QC警告：{{rule}}，请检查仪器"
+    }
+  },
+  "sync": {
+    "title": "数据同步与集成",
+    "subtitle": "配置外部系统连接",
+    "cloud_sync": "云端同步",
+    "dhis2": "DHIS2 集成",
+    "openmrs": "OpenMRS 集成",
+    "server_url": "服务器地址",
+    "username": "用户名",
+    "password": "密码",
+    "enable": "启用集成",
+    "test_connection": "测试连接",
+    "save_config": "保存配置",
+    "export_offline": "导出离线数据包",
+    "import_offline": "导入离线数据包",
+    "manual_sync": "立即同步",
+    "last_sync": "最后同步",
+    "org_unit_id": "组织机构 ID",
+    "dataset_id": "数据集 ID",
+    "status": "状态",
+    "online_sync": "云端同步",
+    "offline_transfer": "离线传输",
+    "offline_transfer_desc": "通过加密文件在站点间传输数据。",
+    "messages": {
+      "save_success": "配置已保存",
+      "save_failed": "保存配置失败",
+      "export_success": "数据包已导出至 {{path}}",
+      "export_failed": "导出失败",
+      "import_success": "数据包已导入，更新了 {{count}} 条记录",
+      "import_failed": "导入失败",
+      "sync_success": "同步成功",
+      "sync_failed": "同步失败",
+      "connection_success": "连接成功",
+      "connection_failed": "连接失败",
+      "patient_found": "找到患者：{{id}}",
+      "no_patient_found": "未找到 ID 为 1001 的患者（连接正常）"
     }
   }
 }

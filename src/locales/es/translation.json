@@ -29,7 +29,9 @@
     "actions": "Acciones",
     "success": "Éxito",
     "error": "Error",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "active": "Activo",
+    "inactive": "Inactivo"
   },
   "dashboard": {
     "welcome": "Bienvenido de nuevo",
@@ -88,8 +90,7 @@
     },
     "gender": {
       "male": "Masculino",
-      "female": "Femenino",
-      "other": "Otro"
+      "female": "Femenino"
     },
     "actions": {
       "order": "Pedido"
@@ -329,12 +330,12 @@
       "add_user": "Agregar Usuario"
     },
     "messages": {
-        "backup_location": "Por favor seleccione ubicación de respaldo...",
-        "backup_success": "Respaldo de base de datos exitoso",
-        "backup_failed": "Fallo en respaldo",
-        "restore_confirm": "¿Restaurar base de datos? Los datos actuales serán reemplazados.",
-        "restore_success": "Restauración exitosa, por favor reinicie la app",
-        "restore_failed": "Fallo en restauración"
+      "backup_location": "Por favor seleccione ubicación de respaldo...",
+      "backup_success": "Respaldo de base de datos exitoso",
+      "backup_failed": "Fallo en respaldo",
+      "restore_confirm": "¿Restaurar base de datos? Los datos actuales serán reemplazados.",
+      "restore_success": "Restauración exitosa, por favor reinicie la app",
+      "restore_failed": "Fallo en restauración"
     }
   },
   "reports": {
@@ -400,6 +401,43 @@
     "messages": {
       "create_success": "Creado exitosamente",
       "update_success": "Actualizado exitosamente"
+    }
+  },
+  "sync": {
+    "title": "Sincronización de Datos e Integraciones",
+    "subtitle": "Configurar conexiones a sistemas externos",
+    "cloud_sync": "Sincronización en la Nube",
+    "dhis2": "Integración DHIS2",
+    "openmrs": "Integración OpenMRS",
+    "server_url": "URL del Servidor",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "enable": "Activar integración",
+    "test_connection": "Probar Conexión",
+    "save_config": "Guardar Configuración",
+    "export_offline": "Exportar Paquete Offline",
+    "import_offline": "Importar Paquete Offline",
+    "manual_sync": "Sincronizar Ahora",
+    "last_sync": "Última Sinc.",
+    "org_unit_id": "ID Unidad Org.",
+    "dataset_id": "ID Conjunto de Datos",
+    "status": "Estado",
+    "online_sync": "Sincronización en línea",
+    "offline_transfer": "Transferencia offline",
+    "offline_transfer_desc": "Transferir datos entre sitios mediante archivo cifrado.",
+    "messages": {
+      "save_success": "Configuración guardada",
+      "save_failed": "Error al guardar la configuración",
+      "export_success": "Paquete exportado a {{path}}",
+      "export_failed": "Error al exportar",
+      "import_success": "Paquete importado. {{count}} registros actualizados.",
+      "import_failed": "Error al importar",
+      "sync_success": "Sincronización completada exitosamente",
+      "sync_failed": "Error de sincronización",
+      "connection_success": "Conexión exitosa",
+      "connection_failed": "Conexión fallida",
+      "patient_found": "Paciente encontrado: {{id}}",
+      "no_patient_found": "No se encontró paciente con ID 1001 (Conexión OK)"
     }
   }
 }

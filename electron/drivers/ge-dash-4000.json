@@ -1,0 +1,32 @@
+{
+    "id": "ge-dash-4000",
+    "name": "GE Dash 4000",
+    "manufacturer": "GE Healthcare",
+    "model": "Dash 4000",
+    "category": "monitoring",
+    "connection": "tcp",
+    "protocol": "hl7",
+    "description": "GE Dash 4000 模块化患者监护仪，支持网络输出 HL7 数据",
+    "tcpConfig": {
+        "host": "192.168.1.100",
+        "port": 2100,
+        "mode": "client"
+    },
+    "protocolOptions": {
+        "hl7": {
+            "version": "2.3",
+            "encoding": "ascii",
+            "messageType": "ORU^R01"
+        }
+    },
+    "testMapping": {
+        "HR": "HR",
+        "SPO2": "SpO2",
+        "NIBP_SYS": "BP_SYS",
+        "NIBP_DIA": "BP_DIA",
+        "NIBP_MEAN": "BP_MEAN",
+        "RESP": "RR",
+        "TEMP1": "TEMP"
+    },
+    "version": "1.0.0"
+}

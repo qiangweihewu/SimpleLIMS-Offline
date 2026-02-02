@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, User, FileText, Loader2, Tag } from 'lucide-react';
+import { ArrowLeft, Plus, User, FileText, Loader2, Tag, Camera, Settings } from 'lucide-react';
 import { calculateAge, getPatientNameFromObject } from '@/lib/utils';
 import { usePatientDetail } from '@/hooks/use-patient-detail';
 import { useBarcodeStore } from '@/stores/barcode-store';
+import { ImageCapture } from '@/components/imaging/ImageCapture';
+import { CameraTest } from '@/components/imaging/CameraTest';
+import { useState } from 'react';
 
 export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +19,7 @@ export function PatientDetailPage() {
   const patientId = parseInt(id || '0', 10);
   const { patient, samples, loading, error } = usePatientDetail(patientId);
   const { print } = useBarcodeStore();
+  const [showCameraTest, setShowCameraTest] = useState(false);
 
   const handlePrintLabel = (sample: any) => {
     if (!patient) return;
@@ -168,6 +172,29 @@ export function PatientDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="pt-6 border-t">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Camera className="h-5 w-5" /> Imaging & Capture (Legacy Devices)
+          </h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCameraTest(!showCameraTest)}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            {showCameraTest ? 'Hide Test' : 'Camera Test'}
+          </Button>
+        </div>
+        
+        {showCameraTest ? (
+          <CameraTest />
+        ) : (
+          <ImageCapture patientId={patient.patient_id} />
+        )}
+      </div>
+
     </div>
   );
 }

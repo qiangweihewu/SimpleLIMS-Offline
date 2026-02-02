@@ -1,0 +1,31 @@
+{
+    "id": "philips-intellivue-mx450",
+    "name": "Philips IntelliVue MX450",
+    "manufacturer": "Philips",
+    "model": "IntelliVue MX450",
+    "category": "monitoring",
+    "connection": "tcp",
+    "protocol": "hl7",
+    "description": "Philips IntelliVue MX450 床旁监护仪，通过 IntelliBridge 或网关输出 HL7",
+    "tcpConfig": {
+        "host": "192.168.1.101",
+        "port": 2200,
+        "mode": "client"
+    },
+    "protocolOptions": {
+        "hl7": {
+            "version": "2.4",
+            "encoding": "ascii",
+            "messageType": "ORU^R01"
+        }
+    },
+    "testMapping": {
+        "MDC_PULS_OXIM_SAT_O2": "SpO2",
+        "MDC_ECG_HEART_RATE": "HR",
+        "MDC_PRESS_BLD_NONINV_SYS": "BP_SYS",
+        "MDC_PRESS_BLD_NONINV_DIA": "BP_DIA",
+        "MDC_RESP_RATE": "RR",
+        "MDC_TEMP_BODY": "TEMP"
+    },
+    "version": "1.0.0"
+}

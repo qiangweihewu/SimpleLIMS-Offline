@@ -7,6 +7,8 @@ export function useDashboard() {
     pendingSamples: 0,
     completedSamples: 0,
     abnormalResults: 0,
+    weekTotalSamples: 0,
+    weekAverageTAT: 0,
     recentSamples: [] as {
       id: number;
       sample_id: string;

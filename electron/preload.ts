@@ -102,6 +102,81 @@ contextBridge.exposeInMainWorld('electronAPI', {
     delete: (id: number) => ipcRenderer.invoke('user:delete', id),
   },
 
+  // ============= Phase 1: Time Sync & Quality =============
+  timeSync: {
+    getDrift: (instrumentId: number) => ipcRenderer.invoke('time:getDrift', instrumentId),
+    setOffset: (instrumentId: number, offsetMs: number) => ipcRenderer.invoke('time:setOffset', { instrumentId, offsetMs }),
+    getHistory: (instrumentId: number) => ipcRenderer.invoke('time:getHistory', instrumentId),
+    getSystemTime: () => ipcRenderer.invoke('time:getSystemTime'),
+  },
+
+  quality: {
+    getMetrics: (instrumentId: number) => ipcRenderer.invoke('quality:getMetrics', instrumentId),
+    getHistory: (instrumentId: number, hours: number) => ipcRenderer.invoke('quality:getHistory', { instrumentId, hours }),
+  },
+
+  // ============= Phase 2: Lifecycle & Maintenance =============
+  lifecycle: {
+    addEvent: (instrumentId: number, event: any) => ipcRenderer.invoke('lifecycle:addEvent', { instrumentId, event }),
+    getHistory: (instrumentId: number) => ipcRenderer.invoke('lifecycle:getHistory', instrumentId),
+    getUpcomingDueDates: (days: number) => ipcRenderer.invoke('lifecycle:getUpcomingDueDates', days),
+  },
+
+  maintenance: {
+    evaluateHealth: (instrumentId: number) => ipcRenderer.invoke('maintenance:evaluateHealth', instrumentId),
+  },
+
+  // ============= Phase 5: Imaging =============
+  video: {
+    listDevices: () => ipcRenderer.invoke('video:listDevices'),
+    startPreview: (config: any) => ipcRenderer.invoke('video:startPreview', config),
+    stopPreview: (devicePath: string) => ipcRenderer.invoke('video:stopPreview', devicePath),
+    capture: (config: any, patientId?: string) => ipcRenderer.invoke('video:capture', { config, patientId }),
+    startRecording: (config: any, patientId?: string, duration?: number) => ipcRenderer.invoke('video:startRecording', { config, patientId, duration }),
+    stopRecording: (sessionId: string) => ipcRenderer.invoke('video:stopRecording', sessionId),
+    saveWebRecording: (buffer: ArrayBuffer, patientId: string, format?: string) => ipcRenderer.invoke('video:saveWebRecording', { buffer, patientId, format }),
+    getCaptures: (patientId?: string) => ipcRenderer.invoke('video:getCaptures', patientId),
+  },
+
+  dicom: {
+    wrap: (imagePath: string, patient: any, study: any) => ipcRenderer.invoke('dicom:wrap', { imagePath, patient, study }),
+    list: (patientId?: string) => ipcRenderer.invoke('dicom:list', patientId),
+  },
+
+  orthanc: {
+    test: () => ipcRenderer.invoke('orthanc:test'),
+    upload: (filePath: string) => ipcRenderer.invoke('orthanc:upload', filePath),
+    search: (query: any) => ipcRenderer.invoke('orthanc:search', query),
+  },
+
+  // Debug functions
+  debug: {
+    testProtocol: (testPath?: string) => ipcRenderer.invoke('debug:testProtocol', testPath),
+  },
+
+  // ============= Phase 4: Integrations =============
+  sync: {
+    getConfig: () => ipcRenderer.invoke('sync:getConfig'),
+    setConfig: (config: any) => ipcRenderer.invoke('sync:setConfig', config),
+    exportOffline: (since: string, password: string) => ipcRenderer.invoke('sync:exportOffline', { since, password }),
+    importOffline: (path: string, password: string) => ipcRenderer.invoke('sync:importOffline', { path, password }),
+    manual: () => ipcRenderer.invoke('sync:manual'),
+  },
+
+  dhis2: {
+    getConfig: () => ipcRenderer.invoke('dhis2:getConfig'),
+    setConfig: (config: any) => ipcRenderer.invoke('dhis2:setConfig', config),
+    generateDaily: (date: string) => ipcRenderer.invoke('dhis2:generateDaily', date),
+    submit: (data: any) => ipcRenderer.invoke('dhis2:submit', data),
+  },
+
+  openmrs: {
+    getConfig: () => ipcRenderer.invoke('openmrs:getConfig'),
+    setConfig: (config: any) => ipcRenderer.invoke('openmrs:setConfig', config),
+    findPatient: (identifier: string) => ipcRenderer.invoke('openmrs:findPatient', identifier),
+    pushObservation: (obs: any) => ipcRenderer.invoke('openmrs:pushObservation', obs),
+  },
+
   // IPC event listeners
   on: (channel: string, callback: (data: unknown) => void) => {
     const listener = (_event: unknown, data: unknown) => callback(data);
