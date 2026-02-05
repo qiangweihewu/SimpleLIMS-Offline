@@ -60,7 +60,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Audit
   audit: {
-    getLogs: (params?: any) => ipcRenderer.invoke('audit:getLogs', params || {}),
+    getLogs: (currentUserRole: string, params?: any) => ipcRenderer.invoke('audit:getLogs', { currentUserRole, ...params }),
   },
 
   // System
@@ -72,8 +72,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // License
   license: {
     getMachineId: () => ipcRenderer.invoke('license:getMachineId'),
+    getMachineIdFormatted: () => ipcRenderer.invoke('license:getMachineIdFormatted'),
     activate: (key: string) => ipcRenderer.invoke('license:activate', key),
+    activateFromFile: (filePath: string) => ipcRenderer.invoke('license:activateFromFile', filePath),
     getStatus: () => ipcRenderer.invoke('license:getStatus'),
+    canRun: () => ipcRenderer.invoke('license:canRun'),
+    getActivationUrl: () => ipcRenderer.invoke('license:getActivationUrl'),
+    hasFeature: (feature: number) => ipcRenderer.invoke('license:hasFeature', feature),
   },
 
   // Report/PDF
@@ -88,18 +93,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     get: (id: string) => ipcRenderer.invoke('driver:get', id),
   },
 
-  // Auth
+  // Auth (simplified - no token/session management)
   auth: {
     login: (creds: any) => ipcRenderer.invoke('auth:login', creds),
   },
 
-  // User Management
+  // User Management (uses currentUserRole for backend role check)
   user: {
-    getAll: () => ipcRenderer.invoke('user:getAll'),
-    create: (data: any) => ipcRenderer.invoke('user:create', data),
-    update: (data: any) => ipcRenderer.invoke('user:update', data),
-    toggleActive: (id: number, isActive: boolean) => ipcRenderer.invoke('user:toggleActive', { id, isActive }),
-    delete: (id: number) => ipcRenderer.invoke('user:delete', id),
+    getAll: (currentUserRole: string) => ipcRenderer.invoke('user:getAll', { currentUserRole }),
+    create: (currentUserRole: string, userData: any) => ipcRenderer.invoke('user:create', { currentUserRole, userData }),
+    update: (currentUserRole: string, userData: any) => ipcRenderer.invoke('user:update', { currentUserRole, userData }),
+    toggleActive: (currentUserRole: string, id: number, isActive: boolean) =>
+      ipcRenderer.invoke('user:toggleActive', { currentUserRole, id, isActive }),
+    delete: (currentUserRole: string, id: number) => ipcRenderer.invoke('user:delete', { currentUserRole, id }),
   },
 
   // ============= Phase 1: Time Sync & Quality =============

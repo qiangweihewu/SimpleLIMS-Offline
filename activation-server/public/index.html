@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleLIMS 软件激活</title>
+    <meta name="description" content="使用您的设备码和序列号激活 SimpleLIMS 离线实验室管理系统">
+
+    <!-- Cloudflare Turnstile (Optional CAPTCHA) -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --error: #ef4444;
+            --bg: #f0f9ff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+        }
+
+        .logo-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        input::placeholder {
+            text-transform: none;
+            letter-spacing: normal;
+            color: #94a3b8;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert.show {
+            display: block;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .result-card {
+            display: none;
+            text-align: center;
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #d1fae5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pop 0.4s ease-out;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+            }
+
+            70% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .result-icon svg {
+            width: 40px;
+            height: 40px;
+            color: var(--success);
+        }
+
+        .license-box {
+            background: #f8fafc;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin: 20px 0;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            text-align: left;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background: #f1f5f9;
+            color: var(--text);
+            font-size: 14px;
+            padding: 12px;
+        }
+
+        .copy-btn:hover:not(:disabled) {
+            background: #e2e8f0;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .download-btn {
+            margin-top: 12px;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Turnstile widget */
+        .cf-turnstile {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Activation Form -->
+        <div class="card" id="formCard">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                </div>
+                <h1>SimpleLIMS 激活</h1>
+                <p class="subtitle">输入您的设备码和序列号获取激活码</p>
+            </div>
+
+            <div class="alert error" id="errorAlert"></div>
+
+            <form id="activationForm">
+                <div class="form-group">
+                    <label for="deviceCode">设备码 (Device Code)</label>
+                    <input type="text" id="deviceCode" name="deviceCode" placeholder="例如: K9P2-X5M8-A3B7" maxlength="14"
+                        required>
+                    <p class="hint">在 SimpleLIMS 激活页面获取</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="serialNumber">序列号 (Serial Number)</label>
+                    <input type="text" id="serialNumber" name="serialNumber" placeholder="例如: LIMS-2026-A7X9-P3M5"
+                        maxlength="20" required>
+                    <p class="hint">购买软件时收到的序列号</p>
+                </div>
+
+                <!-- Cloudflare Turnstile Widget (Optional) -->
+                <!-- <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div> -->
+
+                <button type="submit" id="submitBtn">
+                    <span id="btnText">获取激活码</span>
+                    <div class="spinner" id="btnSpinner" style="display: none;"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Success Result -->
+        <div class="card result-card" id="resultCard">
+            <div class="result-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h1>激活码已生成</h1>
+            <p class="subtitle">复制下方激活码到 SimpleLIMS 中激活</p>
+
+            <div class="license-box" id="licenseKey"></div>
+
+            <button class="copy-btn" id="copyBtn" onclick="copyLicense()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle;">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                复制激活码
+            </button>
+
+            <button class="download-btn" onclick="downloadLicense()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle;">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                下载 .lic 文件
+            </button>
+
+            <p class="subtitle" style="margin-top: 16px;">
+                有效期至: <strong id="expiresAt"></strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>需要帮助？<a href="mailto:support@simplelims.com">联系技术支持</a></p>
+        </div>
+    </div>
+
+    <script>
+        let activationResult = null;
+
+        // Format device code as user types
+        document.getElementById('deviceCode').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            if (value.length > 4) value = value.slice(0, 4) + '-' + value.slice(4);
+            if (value.length > 9) value = value.slice(0, 9) + '-' + value.slice(9);
+            if (value.length > 14) value = value.slice(0, 14);
+            e.target.value = value;
+        });
+
+        // Format serial number as user types
+        document.getElementById('serialNumber').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+            if (value.length > 4) value = value.slice(0, 4) + '-' + value.slice(4);
+            if (value.length > 9) value = value.slice(0, 9) + '-' + value.slice(9);
+            if (value.length > 14) value = value.slice(0, 14) + '-' + value.slice(14);
+            if (value.length > 19) value = value.slice(0, 19);
+            e.target.value = value;
+        });
+
+        // Pre-fill device code from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const mid = urlParams.get('mid');
+        if (mid) {
+            document.getElementById('deviceCode').value = mid.toUpperCase();
+        }
+
+        // Form submission
+        document.getElementById('activationForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const errorAlert = document.getElementById('errorAlert');
+
+            const deviceCode = document.getElementById('deviceCode').value.trim();
+            const serialNumber = document.getElementById('serialNumber').value.trim();
+
+            // Get Turnstile token if available
+            const turnstileToken = typeof turnstile !== 'undefined'
+                ? turnstile.getResponse()
+                : null;
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            btnText.textContent = '生成中...';
+            btnSpinner.style.display = 'block';
+            errorAlert.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/activate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        deviceCode,
+                        serialNumber,
+                        captchaToken: turnstileToken
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    activationResult = {
+                        licenseKey: result.licenseKey,
+                        deviceCode,
+                        serialNumber,
+                        expiresAt: result.expiresAt,
+                        type: result.type
+                    };
+
+                    document.getElementById('licenseKey').textContent = result.licenseKey;
+                    document.getElementById('expiresAt').textContent = new Date(result.expiresAt).toLocaleDateString('zh-CN');
+
+                    document.getElementById('formCard').style.display = 'none';
+                    document.getElementById('resultCard').classList.add('show');
+                } else {
+                    errorAlert.textContent = result.message || '激活失败，请检查输入信息';
+                    errorAlert.classList.add('show');
+                }
+            } catch (err) {
+                errorAlert.textContent = '网络错误，请检查网络连接后重试';
+                errorAlert.classList.add('show');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.textContent = '获取激活码';
+                btnSpinner.style.display = 'none';
+            }
+        });
+
+        function copyLicense() {
+            if (activationResult) {
+                navigator.clipboard.writeText(activationResult.licenseKey).then(() => {
+                    const copyBtn = document.getElementById('copyBtn');
+                    copyBtn.innerHTML = '✓ 已复制';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> 复制激活码';
+                    }, 2000);
+                });
+            }
+        }
+
+        function downloadLicense() {
+            if (activationResult) {
+                const licenseData = {
+                    licenseKey: activationResult.licenseKey,
+                    machineId: activationResult.deviceCode,
+                    serialNumber: activationResult.serialNumber,
+                    expiresAt: activationResult.expiresAt,
+                    type: activationResult.type,
+                    generatedAt: new Date().toISOString(),
+                    instructions: '将此文件拷贝到离线设备，在SimpleLIMS中选择"从文件导入"'
+                };
+
+                const blob = new Blob([JSON.stringify(licenseData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `SimpleLIMS_License_${activationResult.deviceCode.replace(/-/g, '')}.lic`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+    </script>
+</body>
+
+</html>

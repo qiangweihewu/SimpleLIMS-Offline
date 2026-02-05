@@ -63,7 +63,13 @@ export interface ElectronAPI {
   };
 
   audit: {
-    getLogs: (params?: { page?: number; pageSize?: number; filters?: any }) => Promise<{ logs: any[]; total: number; page: number; pageSize: number; totalPages: number }>;
+    getLogs: (currentUserRole: string, params?: { page?: number; pageSize?: number; filters?: any }) => Promise<{
+      logs: any[];
+      total: number;
+      page: number;
+      pageSize: number;
+      totalPages: number;
+    }>;
   };
 
   system: {
@@ -73,8 +79,13 @@ export interface ElectronAPI {
 
   license: {
     getMachineId: () => Promise<string>;
-    activate: (key: string) => Promise<{ success: boolean; message: string }>;
+    getMachineIdFormatted: () => Promise<string>;
+    activate: (key: string) => Promise<{ success: boolean; message: string; payload?: any }>;
+    activateFromFile: (filePath: string) => Promise<{ success: boolean; message: string; payload?: any }>;
     getStatus: () => Promise<LicenseStatus>;
+    canRun: () => Promise<{ allowed: boolean; reason: string; requiresActivation: boolean }>;
+    getActivationUrl: () => Promise<string>;
+    hasFeature: (feature: number) => Promise<boolean>;
   };
 
   report: {
@@ -92,11 +103,11 @@ export interface ElectronAPI {
   };
 
   user: {
-    getAll: () => Promise<any[]>;
-    create: (data: any) => Promise<{ success: boolean; id?: number; error?: string }>;
-    update: (data: any) => Promise<{ success: boolean; error?: string }>;
-    toggleActive: (id: number, isActive: boolean) => Promise<{ success: boolean; error?: string }>;
-    delete: (id: number) => Promise<{ success: boolean; error?: string }>;
+    getAll: (currentUserRole: string) => Promise<any[]>;
+    create: (currentUserRole: string, userData: any) => Promise<{ success: boolean; id?: number; error?: string }>;
+    update: (currentUserRole: string, userData: any) => Promise<{ success: boolean; error?: string }>;
+    toggleActive: (currentUserRole: string, id: number, isActive: boolean) => Promise<{ success: boolean; error?: string }>;
+    delete: (currentUserRole: string, id: number) => Promise<{ success: boolean; error?: string }>;
   };
 
   debug: {
@@ -252,8 +263,29 @@ export interface DicomFile {
 export interface LicenseStatus {
   activated: boolean;
   machineId: string;
+  machineIdFormatted: string;
+  activatedAt?: string;
+  licenseType: 'trial' | 'professional' | 'enterprise';
   expiresAt?: string;
-  licenseType?: 'trial' | 'standard' | 'professional';
+  trialDaysRemaining: number;
+  isTrialExpired: boolean;
+  isLicenseExpired: boolean;
+  firstRunAt: string;
+  features: number; // Bitmask
+  integrityValid: boolean;
+  timeIntegrityValid: boolean;
+}
+
+// License feature bitmask values
+export enum LicenseFeature {
+  BASIC_TESTING = 1 << 0,
+  PATIENT_MANAGEMENT = 1 << 1,
+  INSTRUMENT_CONNECT = 1 << 2,
+  REPORT_GENERATION = 1 << 3,
+  IMAGE_CAPTURE = 1 << 4,
+  CLOUD_SYNC = 1 << 5,
+  ADVANCED_REPORTS = 1 << 6,
+  AUDIT_LOG = 1 << 7,
 }
 
 declare global {

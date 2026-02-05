@@ -2,7 +2,7 @@ import { getDatabase } from '../database/index.js';
 
 // Simple audit logger
 export const auditLogger = {
-    log: (action: string, entityType: string, entityId: number | string | null, details: Partial<{ oldValues: any, newValues: any, userId: number, ip: string }> = {}) => {
+    log: (action: string, entityType: string, entityId: number | string | null, details: Partial<{ oldValues: any, newValues: any, userId: number, performedBy: number, ip: string }> = {}) => {
         try {
             const db = getDatabase();
             db.prepare(`

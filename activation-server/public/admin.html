@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleLIMS Admin - 许可证管理</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .login-card h1 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.show {
+            display: block;
+        }
+
+        .header {
+            background: var(--card-bg);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 18px;
+        }
+
+        .main {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            background: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 4px;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #166534;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .mono {
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #166534;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-card">
+            <h1>🔐 管理员登录</h1>
+            <div class="form-group">
+                <label>管理密码</label>
+                <input type="password" id="adminPassword" placeholder="输入管理密码">
+            </div>
+            <button class="btn-primary" style="width: 100%;" onclick="login()">登录</button>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <div class="header">
+            <h1>SimpleLIMS 许可证管理</h1>
+            <button class="btn-secondary" onclick="logout()">退出登录</button>
+        </div>
+
+        <div class="main">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">总序列号</div>
+                    <div class="stat-value" id="statTotal">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">已激活</div>
+                    <div class="stat-value" id="statActivated">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">未使用</div>
+                    <div class="stat-value" id="statUnused">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">已撤销</div>
+                    <div class="stat-value" id="statRevoked">-</div>
+                </div>
+            </div>
+
+            <!-- Generate SNs -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">生成序列号</span>
+                </div>
+                <div class="alert alert-success hidden" id="generateAlert"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>数量</label>
+                        <input type="number" id="genCount" value="1" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>类型</label>
+                        <select id="genType">
+                            <option value="trial">试用版 (Trial)</option>
+                            <option value="professional" selected>专业版 (Professional)</option>
+                            <option value="enterprise">企业版 (Enterprise)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>有效天数</label>
+                        <input type="number" id="genDays" value="365" min="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>客户名称 (可选)</label>
+                        <input type="text" id="genCustomer" placeholder="张三">
+                    </div>
+                    <div class="form-group">
+                        <label>客户邮箱 (可选)</label>
+                        <input type="email" id="genEmail" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>备注 (可选)</label>
+                    <textarea id="genNotes" rows="2" placeholder="订单号、来源等"></textarea>
+                </div>
+                <button class="btn-primary" onclick="generateSNs()">生成序列号</button>
+            </div>
+
+            <!-- SN List -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">序列号列表</span>
+                    <button class="btn-secondary btn-sm" onclick="loadSNs()">刷新</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>序列号</th>
+                                <th>类型</th>
+                                <th>有效期</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="snTable">
+                            <tr>
+                                <td colspan="6" class="text-muted" style="text-align: center;">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">序列号详情</span>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let token = '';
+        const API_BASE = '/api/admin/sn';
+
+        // Login
+        function login() {
+            token = document.getElementById('adminPassword').value;
+            if (!token) {
+                alert('请输入密码');
+                return;
+            }
+
+            // Test auth by loading SNs
+            loadSNs().then(success => {
+                if (success) {
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('dashboard').classList.add('show');
+                    localStorage.setItem('admin_token', token);
+                } else {
+                    alert('密码错误');
+                }
+            });
+        }
+
+        function logout() {
+            token = '';
+            localStorage.removeItem('admin_token');
+            location.reload();
+        }
+
+        // Check saved token
+        window.onload = function () {
+            const saved = localStorage.getItem('admin_token');
+            if (saved) {
+                token = saved;
+                loadSNs().then(success => {
+                    if (success) {
+                        document.getElementById('loginScreen').style.display = 'none';
+                        document.getElementById('dashboard').classList.add('show');
+                    }
+                });
+            }
+        };
+
+        // API call helper
+        async function apiCall(action, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            if (body) options.body = JSON.stringify(body);
+
+            const response = await fetch(`${API_BASE}?action=${action}`, options);
+            return await response.json();
+        }
+
+        // Load SNs
+        async function loadSNs() {
+            try {
+                const result = await apiCall('list');
+                if (!result.success) return false;
+
+                const records = result.records || [];
+                updateStats(records);
+                renderTable(records);
+                return true;
+            } catch (err) {
+                console.error(err);
+                return false;
+            }
+        }
+
+        function updateStats(records) {
+            const total = records.length;
+            const activated = records.filter(r => r.activations?.length > 0).length;
+            const unused = records.filter(r => !r.activations?.length && !r.revokedAt).length;
+            const revoked = records.filter(r => r.revokedAt).length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statActivated').textContent = activated;
+            document.getElementById('statUnused').textContent = unused;
+            document.getElementById('statRevoked').textContent = revoked;
+        }
+
+        function renderTable(records) {
+            const tbody = document.getElementById('snTable');
+            if (!records.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align: center;">暂无数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = records.map(r => {
+                let status = '<span class="badge badge-info">未使用</span>';
+                if (r.revokedAt) {
+                    status = '<span class="badge badge-error">已撤销</span>';
+                } else if (r.activations?.length > 0) {
+                    status = `<span class="badge badge-success">已激活 (${r.activations.length})</span>`;
+                }
+
+                const typeLabels = { trial: '试用', professional: '专业', enterprise: '企业' };
+
+                return `
+                    <tr>
+                        <td class="mono">${r.sn}</td>
+                        <td>${typeLabels[r.type] || r.type}</td>
+                        <td>${r.days} 天</td>
+                        <td>${status}</td>
+                        <td class="text-muted">${new Date(r.createdAt).toLocaleDateString('zh-CN')}</td>
+                        <td>
+                            <button class="btn-secondary btn-sm" onclick="showDetail('${r.sn}')">详情</button>
+                            ${!r.revokedAt ? `<button class="btn-danger btn-sm" onclick="revokeSN('${r.sn}')" style="margin-left: 4px;">撤销</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Generate SNs
+        async function generateSNs() {
+            const count = parseInt(document.getElementById('genCount').value) || 1;
+            const type = document.getElementById('genType').value;
+            const days = parseInt(document.getElementById('genDays').value) || 365;
+            const customerName = document.getElementById('genCustomer').value;
+            const customerEmail = document.getElementById('genEmail').value;
+            const notes = document.getElementById('genNotes').value;
+
+            const result = await apiCall('generate', 'POST', {
+                count, type, days, customerName, customerEmail, notes
+            });
+
+            if (result.success) {
+                const alert = document.getElementById('generateAlert');
+                alert.textContent = `成功生成 ${result.count} 个序列号: ${result.serialNumbers.join(', ')}`;
+                alert.classList.remove('hidden');
+                setTimeout(() => alert.classList.add('hidden'), 5000);
+                loadSNs();
+            } else {
+                alert('生成失败: ' + (result.error || '未知错误'));
+            }
+        }
+
+        // Show detail
+        async function showDetail(sn) {
+            const result = await apiCall('get&sn=' + sn);
+            if (!result.success) {
+                alert('获取详情失败');
+                return;
+            }
+
+            const r = result.record;
+            const activationsList = r.activations?.length
+                ? r.activations.map(a => `
+                    <div style="padding: 8px; background: #f8fafc; border-radius: 6px; margin-bottom: 8px;">
+                        <div><strong>设备码:</strong> <span class="mono">${a.deviceCode}</span></div>
+                        <div class="text-muted"><strong>激活时间:</strong> ${new Date(a.activatedAt).toLocaleString('zh-CN')}</div>
+                        <button class="btn-secondary btn-sm" onclick="unbindDevice('${r.sn}', '${a.deviceCode}')" style="margin-top: 4px;">解绑此设备</button>
+                    </div>
+                `).join('')
+                : '<div class="text-muted">暂无激活记录</div>';
+
+            document.getElementById('modalContent').innerHTML = `
+                <div class="form-group">
+                    <label>序列号</label>
+                    <div class="mono" style="font-size: 16px;">${r.sn}</div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>类型</label>
+                        <div>${r.type}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>有效期</label>
+                        <div>${r.days} 天</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>客户</label>
+                    <div>${r.customerName || '-'} ${r.customerEmail ? `(${r.customerEmail})` : ''}</div>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <div style="white-space: pre-wrap;">${r.notes || '-'}</div>
+                </div>
+                <div class="form-group">
+                    <label>激活记录 (${r.activations?.length || 0}/${r.maxRebinds})</label>
+                    ${activationsList}
+                </div>
+                ${r.revokedAt ? `<div class="alert alert-error">已于 ${new Date(r.revokedAt).toLocaleString('zh-CN')} 撤销</div>` : ''}
+            `;
+
+            document.getElementById('detailModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        // Revoke SN
+        async function revokeSN(sn) {
+            const reason = prompt('请输入撤销原因:', '');
+            if (reason === null) return;
+
+            const result = await apiCall('revoke', 'POST', { serialNumber: sn, reason });
+            if (result.success) {
+                alert('撤销成功');
+                closeModal();
+                loadSNs();
+            } else {
+                alert('撤销失败: ' + (result.error || '未知错误'));
+            }
+        }
+
+        // Unbind device
+        async function unbindDevice(sn, deviceCode) {
+            const reason = prompt('请输入解绑原因:', '设备更换');
+            if (reason === null) return;
+
+            const result = await apiCall('unbind', 'POST', { serialNumber: sn, deviceCode, reason });
+            if (result.success) {
+                alert('解绑成功');
+                showDetail(sn);
+                loadSNs();
+            } else {
+                alert('解绑失败: ' + (result.error || '未知错误'));
+            }
+        }
+
+        // Enter key for login
+        document.getElementById('adminPassword').addEventListener('keyup', function (e) {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+</body>
+
+</html>

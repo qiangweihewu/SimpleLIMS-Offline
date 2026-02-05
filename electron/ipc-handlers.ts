@@ -31,6 +31,9 @@ import fs from 'fs';
 
 import bcrypt from 'bcryptjs';
 
+// Note: Session/token management removed for simplified offline auth model
+// Backend role checks via currentUserRole parameter for defense-in-depth
+
 let mainWindow: BrowserWindow | null = null;
 
 export function setMainWindow(window: BrowserWindow) {
@@ -358,155 +361,75 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
   });
 
   // ============= License =============
+  // Using unified license service for security
+  const licenseService = await import('./services/license-service.js');
 
   ipcMain.handle('license:getMachineId', async () => {
-    // Generate machine ID from hardware info
-    const cpus = os.cpus();
-    const networkInterfaces = os.networkInterfaces();
+    return licenseService.generateMachineId();
+  });
 
-    const data = [
-      os.hostname(),
-      os.platform(),
-      os.arch(),
-      cpus[0]?.model || '',
-      Object.values(networkInterfaces)
-        .flat()
-        .find(i => i && !i.internal && i.mac !== '00:00:00:00:00:00')?.mac || '',
-    ].join('|');
-
-    const hash = crypto.createHash('sha256').update(data).digest('hex');
-    // Format as readable ID
-    return `${hash.slice(0, 4)}-${hash.slice(4, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}`.toUpperCase();
+  ipcMain.handle('license:getMachineIdFormatted', async () => {
+    const machineId = licenseService.generateMachineId();
+    return licenseService.formatMachineId(machineId);
   });
 
   ipcMain.handle('license:activate', async (_event, key: string) => {
-    try {
-      if (!key || !key.includes('.')) {
-        return { success: false, message: '无效的许可证格式' };
-      }
+    const db = getDatabase();
+    const result = licenseService.activateLicense(db, key);
 
-      const [payloadB64, signatureB64] = key.split('.');
-      const payloadStr = Buffer.from(payloadB64, 'base64').toString('utf-8');
-      const payload = JSON.parse(payloadStr);
-
-      // 1. Verify Signature
-      const publicKeyPath = path.join(__dirname, 'public_key.pem').replace('dist-electron', 'electron');
-      // In dev: electron/public_key.pem. In prod: resources?
-      // Better to embed it or copy it.
-      // For now, let's assume it is copied to dist-electron or we read it differently.
-      // Actually, safest is to embed the public key string directly in code to avoid file I/O issues in ASAR.
-      // But user didn't ask to embed. I will read from file but I need to ensure it's copied.
-      // Let's allow reading from `__dirname`.
-
-      let publicKey = '';
+    // Optional: Verify online if network available
+    if (result.success) {
       try {
-        publicKey = fs.readFileSync(path.join(__dirname, 'public_key.pem'), 'utf-8');
-      } catch (e) {
-        // Fallback for dev environment path
-        publicKey = fs.readFileSync(path.resolve(__dirname, '../electron/public_key.pem'), 'utf-8');
+        const onlineResult = await licenseService.verifyOnline(key);
+        if (onlineResult.shouldBlock) {
+          return { success: false, message: '此许可证已被撤销' };
+        }
+      } catch {
+        // Ignore network errors - allow offline activation
       }
-
-      const verify = crypto.createVerify('SHA256');
-      verify.update(payloadStr);
-      verify.end();
-      const isValid = verify.verify(publicKey, signatureB64, 'base64');
-
-      if (!isValid) {
-        return { success: false, message: '许可证签名无效' };
-      }
-
-      // 2. Verify Machine ID
-      // Retrieve machine ID (re-use logic or call getMachineId)
-      // Since getMachineId is just a handle, I should extract the logic or call via handle if possible, 
-      // but ipcMain calling itself is tricky.
-      // I'll duplicate the logic for now or extract it to a helper.
-      // logic lines 343-353 in this file.
-      // I will copy-paste the logic for safety and speed.
-      const networkInterfaces = os.networkInterfaces();
-      const data = [
-        os.platform(),
-        os.arch(),
-        os.cpus().map(cpu => cpu.model).join('|'),
-        os.totalmem(),
-        Object.values(networkInterfaces)
-          .flat()
-          .find(i => i && !i.internal && i.mac !== '00:00:00:00:00:00')?.mac || '',
-      ].join('|');
-      const hash = crypto.createHash('sha256').update(data).digest('hex');
-      const currentMachineId = `${hash.slice(0, 4)}-${hash.slice(4, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}`.toUpperCase();
-
-      if (payload.machineId !== currentMachineId) {
-        return { success: false, message: '许可证不属于此设备' };
-      }
-
-      // 3. Verify Expiration
-      if (new Date(payload.expiresAt) < new Date()) {
-        return { success: false, message: '许可证已过期' };
-      }
-
-      // Store license info
-      const db = getDatabase();
-      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_key', ?)`).run(key);
-      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_activated_at', datetime('now'))`).run();
-      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_type', ?)`).run(payload.type);
-      db.prepare(`INSERT OR REPLACE INTO settings (key, value) VALUES ('license_expires_at', ?)`).run(payload.expiresAt);
-
-      return { success: true, message: '许可证激活成功' };
-    } catch (err: any) {
-      console.error('License activation error:', err);
-      return { success: false, message: '激活失败: ' + err.message };
     }
+
+    return result;
+  });
+
+  ipcMain.handle('license:activateFromFile', async (_event, filePath: string) => {
+    const db = getDatabase();
+    const result = licenseService.activateFromFile(db, filePath);
+
+    if (result.success) {
+      try {
+        const licenseKey = db.prepare(`SELECT value FROM settings WHERE key = 'license_key'`).get() as { value: string } | undefined;
+        if (licenseKey?.value) {
+          const onlineResult = await licenseService.verifyOnline(licenseKey.value);
+          if (onlineResult.shouldBlock) {
+            return { success: false, message: '此许可证已被撤销' };
+          }
+        }
+      } catch {
+        // Ignore network errors
+      }
+    }
+
+    return result;
   });
 
   ipcMain.handle('license:getStatus', async () => {
     const db = getDatabase();
-    const licenseKey = db.prepare(`SELECT value FROM settings WHERE key = 'license_key'`).get() as { value: string } | undefined;
-    const activatedAt = db.prepare(`SELECT value FROM settings WHERE key = 'license_activated_at'`).get() as { value: string } | undefined;
+    return licenseService.getLicenseStatus(db);
+  });
 
-    // Check first run date for trial
-    let firstRunAt = db.prepare(`SELECT value FROM settings WHERE key = 'first_run_at'`).get() as { value: string } | undefined;
+  ipcMain.handle('license:canRun', async () => {
+    const db = getDatabase();
+    return licenseService.canRunApplication(db);
+  });
 
-    if (!firstRunAt) {
-      const now = new Date().toISOString();
-      db.prepare(`INSERT INTO settings (key, value) VALUES ('first_run_at', ?)`).run(now);
-      firstRunAt = { value: now };
-    }
+  ipcMain.handle('license:getActivationUrl', async () => {
+    return licenseService.getActivationUrl();
+  });
 
-    // Calculate trial status
-    const firstRunDate = new Date(firstRunAt.value);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - firstRunDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const trialDuration = 30;
-    const trialDaysRemaining = Math.max(0, trialDuration - diffDays);
-    const isTrialExpired = diffDays > trialDuration;
-
-    // Get Machine ID (logic duplicated to avoid IPC call recursion issues if any, or just call helper)
-    // We can use the cached machineId logic or just re-calculate.
-    // Re-calculating is cheap enough.
-    const networkInterfaces = await import('os').then(os => os.networkInterfaces());
-    const os = await import('os');
-    const data = [
-      os.platform(),
-      os.arch(),
-      os.cpus().map(cpu => cpu.model).join('|'),
-      os.totalmem(),
-      Object.values(networkInterfaces)
-        .flat()
-        .find(i => i && !i.internal && i.mac !== '00:00:00:00:00:00')?.mac || '',
-    ].join('|');
-    const hash = crypto.createHash('sha256').update(data).digest('hex');
-    const machineId = `${hash.slice(0, 4)}-${hash.slice(4, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}`.toUpperCase();
-
-    return {
-      activated: !!licenseKey?.value,
-      machineId,
-      activatedAt: activatedAt?.value,
-      licenseType: licenseKey?.value ? 'professional' : 'trial',
-      trialDaysRemaining,
-      isTrialExpired,
-      firstRunAt: firstRunAt.value
-    };
+  ipcMain.handle('license:hasFeature', async (_event, feature: number) => {
+    const db = getDatabase();
+    return licenseService.hasFeature(db, feature);
   });
 
   // ============= Setup Instrument Event Forwarding =============
@@ -612,13 +535,24 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
   });
 
   // ============= User Management =============
+  // Note: Role check is done via currentUserRole parameter for simplicity
+  // In an offline system, frontend role check is sufficient for most cases
+  // Backend role check is added for critical operations as defense-in-depth
 
-  ipcMain.handle('user:getAll', () => {
+  ipcMain.handle('user:getAll', (_event, { currentUserRole }: { currentUserRole?: string } = {}) => {
+    // Only admin can list users
+    if (currentUserRole !== 'admin') {
+      return { success: false, error: 'Permission denied', code: 'PERMISSION_DENIED' };
+    }
     const db = getDatabase();
     return db.prepare('SELECT id, username, full_name, role, is_active, created_at FROM users').all();
   });
 
-  ipcMain.handle('user:create', async (_event, userData) => {
+  ipcMain.handle('user:create', async (_event, { currentUserRole, userData }: { currentUserRole?: string; userData: any }) => {
+    if (currentUserRole !== 'admin') {
+      return { success: false, error: 'Permission denied', code: 'PERMISSION_DENIED' };
+    }
+
     try {
       const db = getDatabase();
       const { username, password, full_name, role } = userData;
@@ -632,7 +566,6 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
         'INSERT INTO users (username, password_hash, full_name, role, is_active) VALUES (?, ?, ?, ?, 1)'
       ).run(username, passwordHash, full_name, role);
 
-      // Log creation
       auditLogger.log('create', 'user', Number(result.lastInsertRowid), { newValues: { username, full_name, role } });
 
       return { success: true, id: result.lastInsertRowid };
@@ -642,7 +575,11 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
     }
   });
 
-  ipcMain.handle('user:update', async (_event, userData) => {
+  ipcMain.handle('user:update', async (_event, { currentUserRole, userData }: { currentUserRole?: string; userData: any }) => {
+    if (currentUserRole !== 'admin') {
+      return { success: false, error: 'Permission denied', code: 'PERMISSION_DENIED' };
+    }
+
     try {
       const db = getDatabase();
       const { id, password, full_name, role } = userData;
@@ -662,7 +599,6 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
         ).run(full_name, role, id);
       }
 
-      // Log update
       auditLogger.log('update', 'user', id, { newValues: { full_name, role } });
 
       return { success: true };
@@ -672,7 +608,11 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
     }
   });
 
-  ipcMain.handle('user:toggleActive', (_event, { id, isActive }: { id: number; isActive: boolean }) => {
+  ipcMain.handle('user:toggleActive', (_event, { currentUserRole, id, isActive }: { currentUserRole?: string; id: number; isActive: boolean }) => {
+    if (currentUserRole !== 'admin') {
+      return { success: false, error: 'Permission denied', code: 'PERMISSION_DENIED' };
+    }
+
     if (id === 1) return { success: false, error: 'Cannot disable default admin' };
 
     getDatabase().prepare(
@@ -684,7 +624,11 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
     return { success: true };
   });
 
-  ipcMain.handle('user:delete', (_event, id) => {
+  ipcMain.handle('user:delete', (_event, { currentUserRole, id }: { currentUserRole?: string; id: number }) => {
+    if (currentUserRole !== 'admin') {
+      return { success: false, error: 'Permission denied', code: 'PERMISSION_DENIED' };
+    }
+
     if (id === 1) return { success: false, error: 'Cannot delete default admin' };
 
     getDatabase().prepare('DELETE FROM users WHERE id = ?').run(id);
@@ -696,11 +640,16 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
 
   // ============= Audit Logs =============
 
-  ipcMain.handle('audit:getLogs', (_event, { page = 1, pageSize = 50, filters = {} }) => {
+  ipcMain.handle('audit:getLogs', (_event, { currentUserRole, page = 1, pageSize = 50, filters = {} }: { currentUserRole?: string; page?: number; pageSize?: number; filters?: any }) => {
+    // Only admin can view audit logs
+    if (currentUserRole !== 'admin') {
+      return { success: false, error: 'Permission denied', code: 'PERMISSION_DENIED' };
+    }
+
     const db = getDatabase();
     const offset = (page - 1) * pageSize;
 
-    let query = `
+    let queryStr = `
       SELECT a.*, u.username 
       FROM audit_log a 
       LEFT JOIN users u ON a.user_id = u.id
@@ -725,17 +674,17 @@ export async function setupIpcHandlers(mainWindow?: BrowserWindow) {
     }
 
     if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      queryStr += ' WHERE ' + conditions.join(' AND ');
     }
 
     // Count total
     const countQuery = `SELECT COUNT(*) as count FROM audit_log a ${conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : ''}`;
     const totalResult = db.prepare(countQuery).get(...params) as { count: number };
 
-    query += ` ORDER BY a.created_at DESC LIMIT ? OFFSET ?`;
+    queryStr += ` ORDER BY a.created_at DESC LIMIT ? OFFSET ?`;
     params.push(pageSize, offset);
 
-    const logs = db.prepare(query).all(...params);
+    const logs = db.prepare(queryStr).all(...params);
 
     return {
       logs,

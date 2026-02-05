@@ -1,10 +1,11 @@
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from 'sonner';
 import { AppLayout } from './components/layout/AppLayout';
 import { BarcodePrinter } from './components/BarcodePrinter';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { RequireAdmin, RequireStaff } from './components/auth/RequireRole';
 import { Loading } from './components/ui/Loading';
 
 // Lazy load pages for better performance
@@ -27,6 +28,7 @@ const UserManagementPage = lazy(() => import('./pages/UserManagementPage').then(
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage').then(module => ({ default: module.AuditLogPage })));
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then(module => ({ default: module.FeedbackPage })));
 const EquipmentPage = lazy(() => import('./pages/EquipmentPage').then(module => ({ default: module.EquipmentPage })));
+const ActivationPage = lazy(() => import('./pages/ActivationPage'));
 
 function RequireAuth() {
   const { isAuthenticated } = useAuth();
@@ -37,6 +39,37 @@ function RequireAuth() {
   }
 
   return <Outlet />;
+}
+
+// License check wrapper - redirects to activation page if license required
+function RequireLicense({ children }: { children: React.ReactNode }) {
+  const [licenseStatus, setLicenseStatus] = useState<{ allowed: boolean; reason: string; requiresActivation: boolean } | null>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    checkLicense();
+  }, []);
+
+  const checkLicense = async () => {
+    try {
+      const status = await window.electronAPI.license.canRun();
+      setLicenseStatus(status);
+    } catch (err) {
+      console.error('License check failed:', err);
+      // Allow usage if check fails (offline-first)
+      setLicenseStatus({ allowed: true, reason: 'Check failed', requiresActivation: false });
+    }
+  };
+
+  if (licenseStatus === null) {
+    return <Loading />;
+  }
+
+  if (!licenseStatus.allowed && licenseStatus.requiresActivation) {
+    return <Navigate to="/activate" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
 }
 
 function AppContent() {
@@ -55,28 +88,35 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/setup" element={<SetupPage />} />
+          <Route path="/activate" element={<ActivationPage />} />
 
-          {/* Protected Routes */}
+          {/* Protected Routes - require auth and valid license */}
           <Route element={<RequireAuth />}>
-            <Route element={<AppLayout />}>
+            <Route element={<RequireLicense><AppLayout /></RequireLicense>}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+              {/* All authenticated users can access */}
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/patients" element={<PatientsPage />} />
               <Route path="/patients/:id" element={<PatientDetailPage />} />
               <Route path="/samples" element={<SamplesPage />} />
-              <Route path="/orders/new" element={<NewOrderPage />} />
               <Route path="/results" element={<ResultsPage />} />
-              <Route path="/worklist" element={<WorklistPage />} />
               <Route path="/test-catalog" element={<TestCatalogPage />} />
               <Route path="/instruments" element={<InstrumentsPage />} />
-              <Route path="/users" element={<UserManagementPage />} />
-              <Route path="/audit-logs" element={<AuditLogPage />} />
-              <Route path="/unmatched" element={<UnmatchedDataPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/reports/:sampleId" element={<ReportPreviewPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/equipment" element={<EquipmentPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+
+              {/* Admin and Technician only */}
+              <Route path="/orders/new" element={<RequireStaff><NewOrderPage /></RequireStaff>} />
+              <Route path="/worklist" element={<RequireStaff><WorklistPage /></RequireStaff>} />
+              <Route path="/unmatched" element={<RequireStaff><UnmatchedDataPage /></RequireStaff>} />
+
+              {/* Admin only */}
+              <Route path="/users" element={<RequireAdmin><UserManagementPage /></RequireAdmin>} />
+              <Route path="/audit-logs" element={<RequireAdmin><AuditLogPage /></RequireAdmin>} />
+              <Route path="/settings" element={<RequireAdmin><SettingsPage /></RequireAdmin>} />
             </Route>
           </Route>
         </Routes>
@@ -94,3 +134,4 @@ function App() {
 }
 
 export default App;
+

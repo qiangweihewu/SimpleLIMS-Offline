@@ -13,7 +13,9 @@
     "pack": "electron-builder --dir",
     "preview": "electron-vite preview",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "license:generate": "npx tsx scripts/generate-license.ts",
+    "license:server": "ADMIN_PASSWORD=your-secure-password npx tsx scripts/license-server.ts"
   },
   "dependencies": {
     "@radix-ui/react-scroll-area": "^1.2.10",
@@ -50,6 +52,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/chokidar": "^1.7.5",
+    "@types/express": "^5.0.6",
     "@types/node-schedule": "^2.1.8",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
@@ -62,6 +65,7 @@
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
+    "express": "^5.2.1",
     "globals": "^15.9.0",
     "png2icons": "^2.0.1",
     "postcss": "^8.4.35",

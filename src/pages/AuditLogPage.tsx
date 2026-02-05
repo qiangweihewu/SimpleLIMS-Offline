@@ -36,19 +36,19 @@ export function AuditLogPage() {
 
     useEffect(() => {
         loadLogs();
-    }, [page, filters]);
+    }, [page, filters, currentUser?.role]);
 
     const loadLogs = async () => {
-        if (!window.electronAPI) return;
+        if (!window.electronAPI || !currentUser) return;
         setLoading(true);
         try {
-            const result = await window.electronAPI.audit.getLogs({
+            const result = await window.electronAPI.audit.getLogs(currentUser.role, {
                 page,
                 pageSize: 20,
                 filters
             });
-            setLogs(result.logs);
-            setTotalPages(result.totalPages);
+            setLogs(result.logs || []);
+            setTotalPages(result.totalPages || 1);
         } catch (err) {
             console.error('Failed to load audit logs:', err);
             toast.error('Failed to load audit logs');

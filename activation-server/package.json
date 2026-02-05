@@ -1,0 +1,18 @@
+{
+    "name": "simplelims-activation-server",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "vercel dev",
+        "build": "echo 'No build required'",
+        "start": "node api/activate.js"
+    },
+    "dependencies": {
+        "@vercel/kv": "^2.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
+        "vercel": "^32.0.0"
+    }
+}

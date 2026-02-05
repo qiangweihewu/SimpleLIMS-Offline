@@ -46,7 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 toast.success('Login successful');
                 return true;
             } else {
-                toast.error(result.error ? `Login failed: ${result.error}` : 'Invalid credentials');
+                const errorMessages: Record<string, string> = {
+                    invalid_credentials: 'Invalid username or password',
+                    account_disabled: 'Your account has been disabled',
+                    server_error: 'Server error occurred',
+                };
+                toast.error(errorMessages[result.error || ''] || 'Login failed');
                 return false;
             }
         } catch (err) {
