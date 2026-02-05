@@ -1,7 +1,7 @@
 // SimpleLIMS-Offline Database Schema
 // SQLite with WAL mode for concurrent read/write
 
-export const SCHEMA_VERSION = 13;
+export const SCHEMA_VERSION = 14;
 
 export const CREATE_TABLES_SQL = `
 -- Enable WAL mode for better concurrency
@@ -416,6 +416,43 @@ CREATE INDEX IF NOT EXISTS idx_dicom_patient ON dicom_files(patient_id);
 CREATE INDEX IF NOT EXISTS idx_dicom_modality ON dicom_files(modality);
 CREATE INDEX IF NOT EXISTS idx_orthanc_sync_dicom ON orthanc_sync_log(dicom_file_id);
 CREATE INDEX IF NOT EXISTS idx_orthanc_sync_status ON orthanc_sync_log(status);
+
+-- ============================================
+-- Phase 6: Equipment Maintenance Enhancement
+-- ============================================
+
+-- Equipment Attachments (images for equipment and maintenance records)
+CREATE TABLE IF NOT EXISTS equipment_attachments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  equipment_id INTEGER REFERENCES equipment(id) ON DELETE CASCADE,
+  maintenance_id INTEGER REFERENCES maintenance_records(id) ON DELETE CASCADE,
+  file_path TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_type TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  caption TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Document Version History (for knowledge base)
+CREATE TABLE IF NOT EXISTS document_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  document_id INTEGER NOT NULL REFERENCES knowledge_base(id) ON DELETE CASCADE,
+  version_number INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  changed_by TEXT NOT NULL,
+  change_summary TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Equipment attachments indexes
+CREATE INDEX IF NOT EXISTS idx_attachments_equipment ON equipment_attachments(equipment_id);
+CREATE INDEX IF NOT EXISTS idx_attachments_maintenance ON equipment_attachments(maintenance_id);
+
+-- Document versions indexes
+CREATE INDEX IF NOT EXISTS idx_doc_versions_document ON document_versions(document_id);
+CREATE INDEX IF NOT EXISTS idx_doc_versions_number ON document_versions(version_number);
 
 -- Insert schema version
 INSERT OR REPLACE INTO schema_version (version) VALUES (${SCHEMA_VERSION});

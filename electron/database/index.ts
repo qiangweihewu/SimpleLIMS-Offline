@@ -289,6 +289,55 @@ export function initDatabase(): Database.Database {
         }
       }
 
+      // Migration to v14 (Equipment Attachments & Document Versions)
+      if (version.version < 14) {
+        try {
+          db.transaction(() => {
+            console.log('Migrating to v14: Adding Equipment Attachments & Document Versions tables...');
+
+            // Equipment Attachments table
+            db!.exec(`
+              CREATE TABLE IF NOT EXISTS equipment_attachments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                equipment_id INTEGER REFERENCES equipment(id) ON DELETE CASCADE,
+                maintenance_id INTEGER REFERENCES maintenance_records(id) ON DELETE CASCADE,
+                file_path TEXT NOT NULL,
+                file_name TEXT NOT NULL,
+                file_type TEXT NOT NULL,
+                file_size INTEGER NOT NULL,
+                caption TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            `);
+
+            // Document Version History table
+            db!.exec(`
+              CREATE TABLE IF NOT EXISTS document_versions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL REFERENCES knowledge_base(id) ON DELETE CASCADE,
+                version_number INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                changed_by TEXT NOT NULL,
+                change_summary TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            `);
+
+            // Indexes
+            db!.exec('CREATE INDEX IF NOT EXISTS idx_attachments_equipment ON equipment_attachments(equipment_id)');
+            db!.exec('CREATE INDEX IF NOT EXISTS idx_attachments_maintenance ON equipment_attachments(maintenance_id)');
+            db!.exec('CREATE INDEX IF NOT EXISTS idx_doc_versions_document ON document_versions(document_id)');
+            db!.exec('CREATE INDEX IF NOT EXISTS idx_doc_versions_number ON document_versions(version_number)');
+
+            console.log('Equipment Attachments & Document Versions tables added.');
+          })();
+        } catch (error) {
+          console.error('Migration to v14 failed:', error);
+          throw error;
+        }
+      }
+
       // Update version
       db.prepare("INSERT OR REPLACE INTO schema_version (version, applied_at) VALUES (?, datetime('now'))").run(SCHEMA_VERSION);
       console.log(`*** Database migrated to v${SCHEMA_VERSION} successfully ***`);

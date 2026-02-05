@@ -26,6 +26,7 @@ const SetupPage = lazy(() => import('./pages/SetupPage').then(module => ({ defau
 const UserManagementPage = lazy(() => import('./pages/UserManagementPage').then(module => ({ default: module.UserManagementPage })));
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage').then(module => ({ default: module.AuditLogPage })));
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then(module => ({ default: module.FeedbackPage })));
+const EquipmentPage = lazy(() => import('./pages/EquipmentPage').then(module => ({ default: module.EquipmentPage })));
 
 function RequireAuth() {
   const { isAuthenticated } = useAuth();
@@ -74,6 +75,7 @@ function AppContent() {
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/reports/:sampleId" element={<ReportPreviewPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/equipment" element={<EquipmentPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>

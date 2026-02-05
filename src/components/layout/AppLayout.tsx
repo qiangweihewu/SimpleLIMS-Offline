@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Users, TestTubes, ClipboardList, FileText, Settings, Microscope, AlertCircle, Menu, X, FlaskConical, ListChecks, LogOut, PlusCircle, MessageSquare, Power, RotateCcw } from 'lucide-react';
+import { LayoutDashboard, Users, TestTubes, ClipboardList, FileText, Settings, Microscope, AlertCircle, Menu, X, FlaskConical, ListChecks, LogOut, PlusCircle, MessageSquare, Power, RotateCcw, Wrench } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -16,6 +16,7 @@ const navigation = [
   { key: 'nav.results', href: '/results', icon: ClipboardList },
   { key: 'nav.catalog', href: '/test-catalog', icon: FlaskConical },
   { key: 'nav.instruments', href: '/instruments', icon: Microscope },
+  { key: 'nav.equipment', href: '/equipment', icon: Wrench },
   { key: 'nav.unmatched', href: '/unmatched', icon: AlertCircle },
   { key: 'nav.reports', href: '/reports', icon: FileText },
   { key: 'nav.settings', href: '/settings', icon: Settings },
